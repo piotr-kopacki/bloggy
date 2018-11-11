@@ -25,6 +25,8 @@ class Entry(MPTTModel):
                             on_delete=models.CASCADE, related_name='children')
     content = models.TextField(
         max_length=4000, default="", help_text="Enter your thoughts here...")
+    content_raw = models.TextField(
+        max_length=4000, default="", help_text="Enter your thoughts here...")
     upvotes = models.ManyToManyField(
         settings.AUTH_USER_MODEL, blank=True, related_name='upvotes')
     downvotes = models.ManyToManyField(
@@ -40,7 +42,9 @@ class Entry(MPTTModel):
         return f"\"{self.content:.20}...\""
 
     def save(self, *args, **kwargs):
-        self.content = bleach.clean(markdown.markdown(self.content), markdown_tags, markdown_attrs)
+        if not self.content == markdown.markdown(self.content_raw):
+            self.content_raw = bleach.clean(self.content, markdown_tags, markdown_attrs)
+        self.content = bleach.clean(markdown.markdown(self.content), markdown_tags, markdown_attrs)    
         super().save(*args, **kwargs)
 
     @property

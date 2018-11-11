@@ -34,48 +34,11 @@
         var csrftoken = getCookie('csrftoken');
         $(document).on('click', ".answerButton", function (e) {
             e.preventDefault();
-            $(".editForm").hide();
-            $(".content").show();
             if ($("#form" + $(this).attr('value')).is(':visible')) {
                 $(".commentForm").hide();
             } else {
                 $(".commentForm").hide();
                 $("#form" + $(this).attr('value')).toggle();
-            }
-        });
-        $(document).on('click', ".editButton", function (e) {
-            e.preventDefault();
-            $(".commentForm").hide();
-            $(".content").show();
-            if ($("#editForm" + $(this).attr('value')).is(':visible')) {
-                $(".editForm").hide();
-                $("#content"+ $(this).attr('value')).show();
-            } else {
-                $(".editForm").hide();
-                $("#editForm" + $(this).attr('value')).toggle();
-                $("#content"+ $(this).attr('value')).hide();
-            }
-        });
-        $(document).on('click', ".deleteButton", function (e) {
-            e.preventDefault();
-            if (window.confirm("Are you sure?")) {
-                $.ajaxSetup({
-                    beforeSend: function (xhr, settings) {
-                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                        }
-                    }
-                });
-                $.ajax({
-                url: "{% url 'entry-list' %}"+$(this).attr('value')+"/",
-                type: 'DELETE',
-                success: function () { // this happens after we get results
-                    location.reload();
-                },
-                error: function () {
-                    console.log("error");
-                }
-            });
             }
         });
         $(document).on('submit', '.commentForm', function (e) {
@@ -214,7 +177,9 @@
             <h1>Oops. There are no discussions to show.</h1>
             {% endif %}
             {% recursetree entries %}
-            {% if node.is_root_node %}
+            {% if node.pk == entry.pk %}
+            <li style="border-left: 1px solid rgba(12, 166, 201, 0.524);">
+            {% elif node.is_root_node %}
                 <li>
                     {% else %}
                 <li style="border-left: 1px solid rgba(0, 0, 0, 0.1);">
@@ -223,7 +188,7 @@
                     <p style="margin-bottom: 2px">
                         <strong style="margin-left: 5px; font-size: 14px;">{{ node.user.username }}</strong>
                         {% load humanize %}
-                        <em><a href="{% url 'entry-detail-view' node.pk %}#{{node.pk}}" style="font-size: 12px;">{{ node.date|naturaltime }}</a></em>
+                        <em><a href="#{{ node.pk }}" style="font-size: 12px;">{{ node.date|naturaltime }}</a></em>
                         <strong class="node" id="votes{{node.pk}}">{{ node.votes_sum }}</strong>
                         {% if user.is_authenticated %}
                         <button class="upvote {{ node.style_class }}" type="upvote" onclick="vote({{node.pk}}, 'upvote')"
@@ -231,17 +196,9 @@
                         <button class="downvote {{ node.style_class }}" type="downvote" onclick="vote({{node.pk}}, 'downvote')"
                             id="downvote{{node.pk}}">&#8722;</button>
                         <a href="#" class="answerButton" value="{{node.pk}}" style="font-size: 12px">answer</a>
-                        {% if node.user.pk == user.pk %}
-                        <a href="#" class="editButton" value="{{node.pk}}" style="font-size: 12px">edit</a>
-                        <a href="#" class="deleteButton" value="{{node.pk}}" style="font-size: 12px; color: red;">delete</a>
-                        {% endif %}
                         {% endif %}
                     </p>
-                    <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px;">{{ node.content|safe }}</div>
-                    <form class="editForm" id="editForm{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
-                        <textarea class="form-control" rows="3" required>{{ node.content_raw|safe }}</textarea>
-                        <button type="submit" class="btn btn-secondary btn-sm">Edit</button>
-                    </form>
+                    <div style="margin-left: 5px;">{{ node.content|safe }}</div>
                     <form class="commentForm" id="form{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
                         <div class="form-group">
                             <textarea class="form-control" rows="3" required></textarea>
@@ -259,23 +216,6 @@
                 {% endif %}
                 {% endrecursetree %}
         </ul>
-        <div class="pagination">
-            <span class="step-links">
-                {% if entries.has_previous %}
-                    <a href="?page=1">&laquo; first</a>
-                    <a href="?page={{ entries.previous_page_number }}">previous</a>
-                {% endif %}
-        
-                <span class="current">
-                    Page {{ entries.number }} of {{ entries.paginator.num_pages }}.
-                </span>
-        
-                {% if entries.has_next %}
-                    <a href="?page={{ entries.next_page_number }}">next</a>
-                    <a href="?page={{ entries.paginator.num_pages }}">last &raquo;</a>
-                {% endif %}
-            </span>
-        </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
         crossorigin="anonymous"></script>

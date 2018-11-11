@@ -12,12 +12,13 @@ from mptt.utils import get_cached_trees
 from datetime import timedelta
 
 
-class RootView(DetailView):
+class EntryDetailView(DetailView):
     model = Entry
-    queryset = Entry.objects.root_nodes()
 
     def get_context_data(self, **kwargs):
-        root_nodes = self.Entry.objects.root_nodes()
+        context = super().get_context_data(**kwargs)
+        context['entries'] = super().get_object().get_root().get_descendants(include_self=True)
+        return context
 
 
 def home(request, sorting='new'):
