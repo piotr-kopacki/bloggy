@@ -1,0 +1,105 @@
+.navbar {
+  background-color: lightseagreen;
+}
+
+html, body {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+body > * {
+  flex-shrink: 0;
+}
+
+
+/* change the brand and text color */
+.navbar .navbar-brand,
+.navbar .navbar-text {
+  color: rgba(255,255,255,.8);
+}
+/* change the link color */
+.navbar .navbar-nav .nav-link {
+  color: rgba(255,255,255,.5);
+}
+/* change the color of active or hovered links */
+.navbar .nav-item.active .nav-link,
+.navbar .nav-item:hover .nav-link {
+  color: #ffffff;
+}
+
+.entry {
+  list-style:none;
+}
+
+.node {
+  font-size: 12px;
+}
+
+.node.positive {
+  color: green;
+}
+
+.node.negative {
+  color: red;
+}
+
+.node.user-upvoted {
+  color: white;
+  background-color: green; 
+  border: 1px solid green; 
+  padding: 1px;
+  border-radius: 5px;
+}
+
+.node.user-downvoted {
+  color: white;
+  background-color: red; 
+  border: 1px solid red; 
+  padding: 1px;
+  border-radius: 5px;
+}
+
+.downvote {
+  border: 1px solid black;
+  border-radius: 5px;
+  background-color: transparent;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.upvote {
+  border: 1px solid black;
+  border-radius: 5px;
+  background-color: transparent;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.downvote.user-downvoted {
+  color: red;
+  background-color: rgba(119, 0, 0, 0.2);
+}
+
+.upvote.user-upvoted {
+  color: green;
+  background-color: rgba(1, 90, 8, 0.2);
+}
+
+ @media only screen and (max-width: 600px) {
+  .navbar {
+    position: relative;
+  }
+}
+
+.anchor {
+  display: block;
+  position: relative;
+  top: -250px;
+  visibility: hidden;
+}
+
+.invalid-feedback {
+  display: block !important;
+}
