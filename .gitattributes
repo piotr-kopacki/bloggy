@@ -17,4 +17,4 @@
 *.pyd		binary
 *.pyo 		binary
 
-static/* linguist-vendored
+app/static/* linguist-vendored
