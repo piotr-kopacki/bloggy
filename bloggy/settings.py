@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'app.apps.AppConfig',
-    'crispy_forms',
     'mptt',
     'rest_framework',
     'rest_framework.authtoken',
