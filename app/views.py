@@ -17,23 +17,32 @@ class EntryDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['entries'] = super().get_object().get_root().get_descendants(include_self=True)
+        context["entries"] = (
+            super().get_object().get_root().get_descendants(include_self=True)
+        )
         return context
 
 
-def home(request, sorting='new'):
-    if sorting == 'new':
+def home(request, sorting="new"):
+    if sorting == "new":
         root_nodes = Entry.objects.root_nodes()
-    elif sorting == 'hot':
-        root_nodes = Entry.objects.root_nodes().filter(date__gte=timezone.now()-timedelta(hours=6)).annotate(
-            hotness=(Count('upvotes') +
-                        Count('downvotes') + Count('children'))
-        ).order_by('-hotness')
-    elif sorting == 'top':
-        root_nodes = Entry.objects.root_nodes().annotate(overall_votes=(
-            Count('upvotes') - Count('downvotes'))).order_by('-overall_votes')
+    elif sorting == "hot":
+        root_nodes = (
+            Entry.objects.root_nodes()
+            .filter(created_date__gte=timezone.now() - timedelta(hours=6))
+            .annotate(
+                hotness=(Count("upvotes") + Count("downvotes") + Count("children"))
+            )
+            .order_by("-hotness")
+        )
+    elif sorting == "top":
+        root_nodes = (
+            Entry.objects.root_nodes()
+            .annotate(overall_votes=(Count("upvotes") - Count("downvotes")))
+            .order_by("-overall_votes")
+        )
     paginator = Paginator(root_nodes, 25)
-    page = request.GET.get('page')
+    page = request.GET.get("page")
     queryset = []
     try:
         queryset = paginator.page(page)
@@ -49,37 +58,37 @@ def home(request, sorting='new'):
     if request.user.is_authenticated:
         for entry in queryset:
             if entry.upvotes.filter(pk=request.user.id).exists():
-                entry.style_class = 'user-upvoted'
+                entry.style_class = "user-upvoted"
             elif entry.downvotes.filter(pk=request.user.id).exists():
-                entry.style_class = 'user-downvoted'
+                entry.style_class = "user-downvoted"
             elif entry.votes_sum == 0:
-                entry.style_class = 'neutral'
+                entry.style_class = "neutral"
             elif entry.votes_sum > 0:
-                entry.style_class = 'positive'
+                entry.style_class = "positive"
             else:
-                entry.style_class = 'negative'
+                entry.style_class = "negative"
 
-    return render(request, 'app/base.html', {'entries': queryset})
+    return render(request, "app/base.html", {"entries": queryset})
 
 
 def top(request):
-    return home(request, 'top')
+    return home(request, "top")
 
 
 def hot(request):
-    return home(request, 'hot')
+    return home(request, "hot")
 
 
 def signup(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
+            username = form.cleaned_data.get("username")
+            raw_password = form.cleaned_data.get("password1")
             user = authenticate(username=username, password=raw_password)
             login(request, user)
-            return redirect('home')
+            return redirect("home")
     else:
         form = SignUpForm()
-    return render(request, 'registration/signup.html', {'form': form})
+    return render(request, "registration/signup.html", {"form": form})

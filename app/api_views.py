@@ -7,6 +7,7 @@ from .permissions import IsOwnerOrReadOnly, DisallowVoteChanges
 from .serializers import EntrySerializer
 from rest_framework.permissions import IsAuthenticated
 
+
 class EntryViewSet(viewsets.ModelViewSet):
     queryset = Entry.objects.all()
     serializer_class = EntrySerializer
@@ -24,17 +25,22 @@ class VoteViewSet(viewsets.ViewSet):
         pk - primary key of an entry
         votetype - 'upvote' or 'downvote'
     """
+
     permission_classes = [IsAuthenticated]
 
     def create(self, request):
-        pk = request.data.get('pk')
-        votetype = request.data.get('votetype')
+        pk = request.data.get("pk")
+        votetype = request.data.get("votetype")
         if not pk:
-            return Response({"detail": "Provide pk"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Provide pk"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if not votetype:
-            return Response({"detail": "Provide votetype"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Provide votetype"}, status=status.HTTP_400_BAD_REQUEST
+            )
         entry = get_object_or_404(Entry, pk=pk)
-        if votetype == 'upvote':
+        if votetype == "upvote":
             if request.user in entry.downvotes.all():
                 entry.downvotes.remove(request.user)
             if request.user in entry.upvotes.all():

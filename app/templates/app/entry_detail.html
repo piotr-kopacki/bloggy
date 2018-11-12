@@ -34,12 +34,77 @@
         var csrftoken = getCookie('csrftoken');
         $(document).on('click', ".answerButton", function (e) {
             e.preventDefault();
+            $(".editForm").hide();
+            $(".content").show();
             if ($("#form" + $(this).attr('value')).is(':visible')) {
                 $(".commentForm").hide();
             } else {
                 $(".commentForm").hide();
                 $("#form" + $(this).attr('value')).toggle();
+                $("#form" + $(this).attr('value'))[0][0].focus();
             }
+        });
+        $(document).on('click', ".editButton", function (e) {
+            e.preventDefault();
+            $(".commentForm").hide();
+            $(".content").show();
+            if ($("#editForm" + $(this).attr('value')).is(':visible')) {
+                $(".editForm").hide();
+                $("#content" + $(this).attr('value')).show();
+            } else {
+                $(".editForm").hide();
+                $("#editForm" + $(this).attr('value')).toggle();
+                $("#editForm" + $(this).attr('value'))[0][0].focus();
+                $("#content" + $(this).attr('value')).hide();
+            }
+        });
+        $(document).on('click', ".deleteButton", function (e) {
+            e.preventDefault();
+            if (window.confirm("Are you sure?")) {
+                $.ajaxSetup({
+                    beforeSend: function (xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+                $.ajax({
+                    url: "{% url 'entry-list' %}" + $(this).attr('value') + "/",
+                    type: 'DELETE',
+                    success: function () { // this happens after we get results
+                        location.reload();
+                    },
+                    error: function () {
+                        console.log("error");
+                    }
+                });
+            }
+        });
+        $(document).on('submit', '.editForm', function (e) {
+            e.preventDefault();
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+            $.ajax({
+                url: "{% url 'entry-list' %}" + $(this).attr('value') + "/",
+                type: 'PATCH',
+                data: {
+                    content: $(this)[0][0].value,
+                },
+                success: function (data) { // this happens after we get results
+                    $("#content"+data.id)[0].innerHTML = data.content_formatted;
+                    $("#content"+data.id).show();
+                    $("#content"+data.id).focus();
+                    $("#editForm"+data.id).hide();
+                },
+                error: function () {
+                    console.log("error");
+                }
+            });
         });
         $(document).on('submit', '.commentForm', function (e) {
             e.preventDefault();
@@ -68,9 +133,6 @@
         $(document).ready(function () {
             $(".discussionForm").submit(function (e) {
                 e.preventDefault();
-                {% if not user.is_authenticated %}
-                window.location.replace("{% url 'login' %}");
-                {% endif %}
                 $.ajaxSetup({
                     beforeSend: function (xhr, settings) {
                         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -84,8 +146,9 @@
                     data: {
                         content: $(this)[0][0].value,
                     },
-                    success: function () { // this happens after we get results
-                        location.reload();
+                    success: function (data) {
+                        console.log(data)
+                        window.location.replace("/entry/" + data.id);
                     },
                     error: function () {
                         console.log("error");
@@ -160,61 +223,59 @@
             <a href="{% url 'top' %}">Top</a>
         </p>
         <hr>
-        {% if user.is_authenticated %}
-        <form class="discussionForm">
-            <div class="form-group">
-                <textarea class="form-control" rows="3" required></textarea>
-                <button type="submit" class="btn btn-primary btn-sm">Add discussion</button>
-            </div>
-        </form>
-        {% else %}
+        {% if not user.is_authenticated %}
         <h4><a href="{% url 'login' %}">Log-in</a> or <a href="{% url 'signup' %}">Register</a> to add a discussion!</h4>
-        {% endif %}
         <hr>
+        {% endif %}
         {% load mptt_tags %}
         <ul class="entry" style="padding-left: 10px;">
-            {% if not entries %}
-            <h1>Oops. There are no discussions to show.</h1>
-            {% endif %}
             {% recursetree entries %}
             {% if node.pk == entry.pk %}
-            <li style="border-left: 1px solid rgba(12, 166, 201, 0.524);">
+            <li style="border-left: 2px solid rgba(15, 191, 255, 0.694);">
             {% elif node.is_root_node %}
-                <li>
-                    {% else %}
-                <li style="border-left: 1px solid rgba(0, 0, 0, 0.1);">
-                    {% endif %}
-                    <a class="anchor" id="{{ node.pk }}"></a>
-                    <p style="margin-bottom: 2px">
-                        <strong style="margin-left: 5px; font-size: 14px;">{{ node.user.username }}</strong>
-                        {% load humanize %}
-                        <em><a href="#{{ node.pk }}" style="font-size: 12px;">{{ node.date|naturaltime }}</a></em>
-                        <strong class="node" id="votes{{node.pk}}">{{ node.votes_sum }}</strong>
-                        {% if user.is_authenticated %}
-                        <button class="upvote {{ node.style_class }}" type="upvote" onclick="vote({{node.pk}}, 'upvote')"
-                            id="upvote{{node.pk}}">&#43;</button>
-                        <button class="downvote {{ node.style_class }}" type="downvote" onclick="vote({{node.pk}}, 'downvote')"
-                            id="downvote{{node.pk}}">&#8722;</button>
-                        <a href="#" class="answerButton" value="{{node.pk}}" style="font-size: 12px">answer</a>
-                        {% endif %}
-                    </p>
-                    <div style="margin-left: 5px;">{{ node.content|safe }}</div>
-                    <form class="commentForm" id="form{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
-                        <div class="form-group">
-                            <textarea class="form-control" rows="3" required></textarea>
-                            <button type="submit" class="btn btn-secondary btn-sm">Add comment</button>
-                        </div>
-                    </form>
-                    {% if not node.is_leaf_node %}
-                    <ul class="children entry">
-                        {{ children }}
-                    </ul>
-                    {% endif %}
-                </li>
-                {% if node.is_root_node %}
-                <hr>
+            <li>
+                {% else %}
+            <li style="border-left: 1px solid rgba(0, 0, 0, 0.1);">
                 {% endif %}
-                {% endrecursetree %}
+                <a class="anchor" id="{{ node.pk }}"></a>
+                <p style="margin-bottom: 2px">
+                    <strong style="margin-left: 5px; font-size: 14px;">{{ node.user.username }}</strong>
+                    {% load humanize %}
+                    <em><a href="{% url 'entry-detail-view' node.pk %}#{{node.pk}}" style="font-size: 12px;">{{ node.created_date|naturaltime }}</a></em>
+                    <strong class="node" id="votes{{node.pk}}">{{ node.votes_sum }}</strong>
+                    {% if user.is_authenticated %}
+                    <button class="upvote {{ node.style_class }}" type="upvote" onclick="vote({{node.pk}}, 'upvote')"
+                        id="upvote{{node.pk}}">&#43;</button>
+                    <button class="downvote {{ node.style_class }}" type="downvote" onclick="vote({{node.pk}}, 'downvote')"
+                        id="downvote{{node.pk}}">&#8722;</button>
+                    <a href="#" class="answerButton" value="{{node.pk}}" style="font-size: 12px">answer</a>
+                    {% if node.user.pk == user.pk %}
+                    <a href="#" class="editButton" value="{{node.pk}}" style="font-size: 12px">edit</a>
+                    <a href="#" class="deleteButton" value="{{node.pk}}" style="font-size: 12px; color: red;">delete</a>
+                    {% endif %}
+                    {% endif %}
+                </p>
+                <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px;">{{ node.content_formatted|safe }}</div>
+                <form class="editForm" id="editForm{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
+                    <textarea class="form-control" rows="3" required>{{ node.content|safe }}</textarea>
+                    <button type="submit" class="btn btn-secondary btn-sm">Edit</button>
+                </form>
+                <form class="commentForm" id="form{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
+                    <div class="form-group">
+                        <textarea class="form-control" rows="3" required></textarea>
+                        <button type="submit" class="btn btn-secondary btn-sm">Add comment</button>
+                    </div>
+                </form>
+                {% if not node.is_leaf_node %}
+                <ul class="children entry">
+                    {{ children }}
+                </ul>
+                {% endif %}
+            </li>
+            {% if node.is_root_node %}
+            <hr>
+            {% endif %}
+            {% endrecursetree %}
         </ul>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"

@@ -19,22 +19,26 @@ class User(AbstractUser):
 
 
 class Entry(MPTTModel):
+    """
+    Model for a blog entry.
+
+    """
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE, related_name='author')
     parent = TreeForeignKey('self', null=True, blank=True,
                             on_delete=models.CASCADE, related_name='children')
     content = models.TextField(
         max_length=4000, default="", help_text="Enter your thoughts here...")
-    content_raw = models.TextField(
-        max_length=4000, default="", help_text="Enter your thoughts here...")
+    content_formatted = models.TextField(
+        max_length=4000, default="")
     upvotes = models.ManyToManyField(
         settings.AUTH_USER_MODEL, blank=True, related_name='upvotes')
     downvotes = models.ManyToManyField(
         settings.AUTH_USER_MODEL, blank=True, related_name='downvotes')
-    date = models.DateTimeField(default=timezone.now)
+    created_date = models.DateTimeField(default=timezone.now)
 
     class MPTTMeta:
-        order_insertion_by = ['-date']
+        order_insertion_by = ['-created_date']
 
     def __str__(self):
         if not self.parent:
@@ -42,9 +46,9 @@ class Entry(MPTTModel):
         return f"\"{self.content:.20}...\""
 
     def save(self, *args, **kwargs):
-        if not self.content == markdown.markdown(self.content_raw):
-            self.content_raw = bleach.clean(self.content, markdown_tags, markdown_attrs)
-        self.content = bleach.clean(markdown.markdown(self.content), markdown_tags, markdown_attrs)    
+        # Save raw content only when new content is provided so it doesn't save html tags
+        self.content = bleach.clean(self.content, markdown_tags, markdown_attrs)
+        self.content_formatted = markdown.markdown(self.content)  
         super().save(*args, **kwargs)
 
     @property

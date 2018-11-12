@@ -26,7 +26,7 @@ class CustomUserAdmin(UserAdmin):
     )
 
 class EntryAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'user_formatted', 'parent_formatted', 'date')
+    list_display = ('__str__', 'user_formatted', 'parent_formatted', 'created_date')
 
     
 
