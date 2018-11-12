@@ -103,3 +103,7 @@ body > * {
 .invalid-feedback {
   display: block !important;
 }
+
+.usernode {
+  border-left: 1px solid rgba(15, 191, 255, 0.496);
+}

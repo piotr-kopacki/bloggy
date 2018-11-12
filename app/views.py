@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.db.models import Count
 from django.utils import timezone
 
-from .models import Entry
+from .models import Entry, User
 from .forms import SignUpForm
 
 from mptt.utils import get_cached_trees
@@ -23,7 +23,30 @@ class EntryDetailView(DetailView):
         return context
 
 
+class UserDetailView(DetailView):
+    model = User
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_entries = Entry.objects.filter(user=super().get_object().pk)[:5]
+        qs = []
+        for entry in user_entries:
+            for node in list(entry.get_family()):
+                qs.append(node)
+        print(qs)
+        context['user'].entries = qs
+        context['user'].entries_count = user_entries.count()
+        context['user'].points = context['user'].entries_count + sum([entry.upvotes.count() for entry in user_entries])
+        return context
+
+
 def home(request, sorting="new"):
+    """
+    Home (front page) view.
+    It accepts one keyword parameter 'sorting' which is passed from 'hot' and 'top' views.
+    To sort a TreeModel from django-mptt this function first sorts root nodes and then
+    rebuilds the trees using get_descendants method on every root.
+    """
     if sorting == "new":
         root_nodes = Entry.objects.root_nodes()
     elif sorting == "hot":
@@ -31,11 +54,12 @@ def home(request, sorting="new"):
             Entry.objects.root_nodes()
             .filter(created_date__gte=timezone.now() - timedelta(hours=6))
             .annotate(
-                hotness=(Count("upvotes") + Count("downvotes") + Count("children"))
+                hotness=((Count("upvotes") + Count("downvotes"))*0.5 +Count("children"))
             )
             .order_by("-hotness")
         )
     elif sorting == "top":
+        # Top sorting sorts descending by subtracting root's downvotes from upvotes
         root_nodes = (
             Entry.objects.root_nodes()
             .annotate(overall_votes=(Count("upvotes") - Count("downvotes")))

@@ -1,66 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'app/base.html' %}
 
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Bloggy - a place to share your thoughts!</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
-        crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'app/style.css' %}">
-</head>
-
-<body>
-    <nav class="navbar fixed-top navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}" style="color: white">Bloggy</a>
+{% block content %}
+<br>
+<form method="POST" action="{% url 'signup' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="usernameInput">Username</label>
+            <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" id="usernameInput" aria-describedby="usernameHelp"
+                placeholder="Username" required>
+            {% for error in form.username.errors %}
+            <div class="invalid-feedback">{{ error|escape }}</div>
+            {% endfor %}
         </div>
-    </nav>
-    <div class="container" style='padding-top: 100px; background-color: #f1ffff; height: 100%'>
-        <form method="POST" action="{% url 'signup' %}">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="usernameInput">Username</label>
-                <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" id="usernameInput" aria-describedby="usernameHelp"
-                    placeholder="Username" required>
-                {% for error in form.username.errors %}
-                <div class="invalid-feedback">{{ error|escape }}</div>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="emailInput">Email</label>
-                <input type="text" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="emailInput" aria-describedby="emailHelp"
-                    placeholder="E-mail" required>
-                {% for error in form.email.errors %}
+        <div class="form-group">
+            <label for="emailInput">Email</label>
+            <input type="text" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="emailInput" aria-describedby="emailHelp"
+                placeholder="E-mail" required>
+            {% for error in form.email.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label for="passwordInput">Password</label>
+            <input type="password" name="password1" class="form-control {% if form.password2.errors or form.password1.errors %}is-invalid{% endif %}" id="passwordInput" placeholder="Password" required>
+            {% for error in form.password1.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="passwordInput">Password</label>
-                <input type="password" name="password1" class="form-control {% if form.password2.errors or form.password1.errors %}is-invalid{% endif %}" id="passwordInput" placeholder="Password" required>
-                {% for error in form.password1.errors %}
-                    <div class="invalid-feedback">{{ error }}</div>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="passwordInput2">Password confirmation</label>
-                <input type="password" name="password2" class="form-control {% if form.password2.errors or form.password1.errors %}is-invalid{% endif %}" id="password2Input" placeholder="Password" required>
-                {% for error in form.password2.errors %}
-                    <div class="invalid-feedback">{{ error }}</div>
-                {% endfor %}
-            </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-
-        {# Assumes you setup the password_reset view in your URLconf #}
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
-        crossorigin="anonymous"></script>
-</body>
-
-</html>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label for="passwordInput2">Password confirmation</label>
+            <input type="password" name="password2" class="form-control {% if form.password2.errors or form.password1.errors %}is-invalid{% endif %}" id="password2Input" placeholder="Password" required>
+            {% for error in form.password2.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}

@@ -1,59 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'app/base.html' %}
+{% block content %}
+<br>
+{% if form.errors %}
+<p>Your username and password didn't match. Please try again.</p>
+{% endif %}
 
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Bloggy - a place to share your thoughts!</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
-        crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'app/style.css' %}">
-</head>
+{% if next %}
+{% if user.is_authenticated %}
+<p>Your account doesn't have access to this page. To proceed,
+    please login with an account that has access.</p>
+{% else %}
+<p>Please login to see this page.</p>
+{% endif %}
+{% endif %}
 
-<body>
-    <nav class="navbar fixed-top navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}" style="color: white">Bloggy</a>
-        </div>
-    </nav>
-    <div class="container" style='padding-top: 100px; background-color: #f1ffff; height: 100%'>
-        {% if form.errors %}
-        <p>Your username and password didn't match. Please try again.</p>
-        {% endif %}
-
-        {% if next %}
-        {% if user.is_authenticated %}
-        <p>Your account doesn't have access to this page. To proceed,
-            please login with an account that has access.</p>
-        {% else %}
-        <p>Please login to see this page.</p>
-        {% endif %}
-        {% endif %}
-
-        <form method="POST" action="{% url 'login' %}">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="usernameInput">Username</label>
-                <input type="text" name="username" class="form-control" id="usernameInput" aria-describedby="usernameHelp"
-                    placeholder="Username">
-            </div>
-            <div class="form-group">
-                <label for="passwordInput">Password</label>
-                <input type="password" name="password" class="form-control" id="passwordInput" placeholder="Password">
-            </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-
-        {# Assumes you setup the password_reset view in your URLconf #}
-        <p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+<form method="POST" action="{% url 'login' %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="usernameInput">Username</label>
+        <input type="text" name="username" class="form-control" id="usernameInput" aria-describedby="usernameHelp"
+            placeholder="Username">
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
-        crossorigin="anonymous"></script>
-</body>
+    <div class="form-group">
+        <label for="passwordInput">Password</label>
+        <input type="password" name="password" class="form-control" id="passwordInput" placeholder="Password">
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
 
-</html>
+{# Assumes you setup the password_reset view in your URLconf #}
+<p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+<p><a href="{% url 'signup' %}">Create an account</a></p>
+{% endblock %}

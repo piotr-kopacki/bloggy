@@ -1,5 +1,5 @@
 from rest_framework import routers
-from app.api_views import EntryViewSet, VoteViewSet
+from app.apiviews import EntryViewSet, VoteViewSet
 
 router = routers.DefaultRouter()
 router.register(r'entries', EntryViewSet)
