@@ -107,3 +107,15 @@ body > * {
 .usernode {
   border-left: 1px solid rgba(15, 191, 255, 0.496);
 }
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    color: white;
+    text-align: center;
+    height: 40px; /* Set the fixed height of the footer here */
+    line-height: 40px; /* Vertically center the text there */
+    background-color: #f5f5f5;
+}
