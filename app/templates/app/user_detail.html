@@ -4,11 +4,14 @@
 {% load humanize %}
 {% load mptt_tags %}
 <hr>
-<h3>{{ user.username }}</h3>
-<h4 data-toggle="tooltip" data-placement="top" title="{{ user.date_joined }}">Joined: {{ user.date_joined|naturaltime }}</h4>
-<h4>Points: {{ user.points }}</h4>
+<h4>{{ user.username }}</h3>
+<p data-toggle="tooltip" data-placement="top" title="{{ user.date_joined }}">
+    Joined: {{ user.date_joined|naturaltime }} 
+    <br> 
+    Points: {{ user.points }}
+</p>
 <hr>
-<h2>5 last discussions</h2>
+<h6>5 last discussions user participated in...</h6>
 <hr>
 <ul class="entry" style="padding-left: 10px;">
     {% if not user.entries %}
@@ -16,7 +19,7 @@
     {% endif %}
     {% recursetree user.entries %}
     {% if node.user.pk == user.pk %}
-    <li style="border-left: 2px solid rgba(15, 191, 255, 0.694);">
+        <li class="usernode">
     {% elif node.is_root_node %}
     <li>
         {% else %}
@@ -24,7 +27,7 @@
         {% endif %}
         <a class="anchor" id="{{ node.pk }}"></a>
         <p style="margin-bottom: 2px">
-            <strong style="margin-left: 5px; font-size: 14px;">{{ node.user.username }}</strong>
+            <a href="{% url 'user-detail-view' node.user.pk %}" style="margin-left: 5px; font-size: 14px;"><strong>{{ node.user.username }}</strong></a>
             {% load humanize %}
             <em><a href="{% url 'entry-detail-view' node.pk %}#{{node.pk}}" style="font-size: 12px;">{{ node.created_date|naturaltime }}</a></em>
             <strong class="node" id="votes{{node.pk}}">{{ node.votes_sum }}</strong>
@@ -59,7 +62,10 @@
     </li>
     {% if node.is_root_node %}
     <hr>
+    <hr>
     {% endif %}
     {% endrecursetree %}
 </ul>
+<hr>
+<hr>
 {% endblock %}

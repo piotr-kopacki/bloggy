@@ -91,6 +91,9 @@ body > * {
   .navbar {
     position: relative;
   }
+  .container.content {
+    padding-top: 0px !important;
+  }
 }
 
 .anchor {

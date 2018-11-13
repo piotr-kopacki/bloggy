@@ -219,7 +219,7 @@
         </div>
     </nav>
     {% endblock %}
-    <div class="container" style='padding-top: 50px;'>
+    <div class="container content" style='padding-top: 50px;'>
         {% block content %}
         <hr>
         <p>
@@ -254,7 +254,7 @@
                 {% endif %}
                 <a class="anchor" id="{{ node.pk }}"></a>
                 <p style="margin-bottom: 2px">
-                    <strong style="margin-left: 5px; font-size: 14px;">{{ node.user.username }}</strong>
+                    <a href="{% url 'user-detail-view' node.user.pk %}" style="margin-left: 5px; font-size: 14px;"><strong>{{ node.user.username }}</strong></a>
                     {% load humanize %}
                     <em><a href="{% url 'entry-detail-view' node.pk %}#{{node.pk}}" style="font-size: 12px;">{{ node.created_date|naturaltime }}</a></em>
                     <strong class="node" id="votes{{node.pk}}">{{ node.votes_sum }}</strong>

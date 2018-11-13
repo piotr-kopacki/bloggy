@@ -28,13 +28,19 @@ class UserDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_entries = Entry.objects.filter(user=super().get_object().pk)[:5]
-        qs = []
+        user_entries = Entry.objects.filter(user=super().get_object().pk)
+        last_discussions = []
+        added_entries = 0 
         for entry in user_entries:
+            if added_entries == 5:
+                break
+            elif any([entry.pk == discussion.pk for discussion in last_discussions]):
+                continue
+            else:
+                added_entries += 1
             for node in list(entry.get_family()):
-                qs.append(node)
-        print(qs)
-        context['user'].entries = qs
+                last_discussions.append(node)
+        context['user'].entries = last_discussions
         context['user'].entries_count = user_entries.count()
         context['user'].points = context['user'].entries_count + sum([entry.upvotes.count() for entry in user_entries])
         return context
