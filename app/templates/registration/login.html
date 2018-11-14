@@ -1,34 +1,27 @@
 {% extends 'app/base.html' %}
 {% block content %}
 <br>
-{% if form.errors %}
-<p>Your username and password didn't match. Please try again.</p>
-{% endif %}
-
-{% if next %}
-{% if user.is_authenticated %}
-<p>Your account doesn't have access to this page. To proceed,
-    please login with an account that has access.</p>
-{% else %}
-<p>Please login to see this page.</p>
-{% endif %}
-{% endif %}
-
 <form method="POST" action="{% url 'login' %}">
     {% csrf_token %}
     <div class="form-group">
         <label for="usernameInput">Username</label>
-        <input type="text" name="username" class="form-control" id="usernameInput" aria-describedby="usernameHelp"
-            placeholder="Username">
+        <input type="text" name="username" class="form-control {% if form.errors %}is-invalid{% endif %}" id="usernameInput"
+            aria-describedby="usernameHelp" placeholder="Username" required>
+        {% if form.errors %}
+        <div class="invalid-feedback">Your username and password didn't match. Please try again.</div>
+        {% endif %}
     </div>
     <div class="form-group">
         <label for="passwordInput">Password</label>
-        <input type="password" name="password" class="form-control" id="passwordInput" placeholder="Password">
+        <input type="password" name="password" class="form-control {% if form.errors %}is-invalid{% endif %}"
+            id="passwordInput" placeholder="Password" required>
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 
-{# Assumes you setup the password_reset view in your URLconf #}
-<p><a href="{% url 'password_reset' %}">Lost password?</a></p>
-<p><a href="{% url 'signup' %}">Create an account</a></p>
+<p>
+    <a href="{% url 'password_reset' %}">Lost password?</a>
+    <br>
+    <a href="{% url 'signup' %}">Create an account</a>
+</p>
 {% endblock %}

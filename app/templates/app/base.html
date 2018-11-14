@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
         crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/lightfair.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     {% load static %}
     <link rel="stylesheet" href="{% static 'app/style.css' %}">
     <script type="text/javascript">
@@ -101,6 +104,9 @@
                     $("#content"+data.id).show();
                     $("#content"+data.id).focus();
                     $("#editForm"+data.id).hide();
+                    $('pre code').each(function(i, block) {
+                        hljs.highlightBlock(block);
+                    });
                 },
                 error: function () {
                     console.log("error");
@@ -151,8 +157,8 @@
                         console.log(data)
                         window.location.replace("/entry/" + data.id);
                     },
-                    error: function () {
-                        console.log("error");
+                    error: function (err) {
+                        console.log(err);
                     }
                 });
             });
@@ -214,12 +220,11 @@
                     <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                 </div>
             </div>
-            <!-- <a href="#" style="color: white;">{{ user.username }}</a> -->
             {% endif %}
         </div>
     </nav>
     {% endblock %}
-    <div class="container content" style='padding-top: 50px;'>
+    <div class="container content">
         {% block content %}
         <hr>
         <p>
@@ -231,7 +236,7 @@
         {% if user.is_authenticated %}
         <form class="discussionForm">
             <div class="form-group">
-                <textarea class="form-control" rows="3" required></textarea>
+                <textarea class="form-control" rows="3" maxlength="4000" required></textarea>
                 <button type="submit" class="btn btn-primary btn-sm">Add discussion</button>
             </div>
         </form>
@@ -271,7 +276,7 @@
                     {% endif %}
                 </p>
                 <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px;">{{ node.content_formatted|safe }}</div>
-                <form class="editForm" id="editForm{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
+                <form class="editForm" id="editForm{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}" maxlength="4000">
                     <textarea class="form-control" rows="3" required>{{ node.content|safe }}</textarea>
                     <button type="submit" class="btn btn-secondary btn-sm">Edit</button>
                 </form>
@@ -314,10 +319,11 @@
     {% block footer %}
     <div class="footer">
         <div class="container">
-            <span class="text-muted">©2018 <a href="{% url 'home' %}">bloggy</a> by <a href="https://github.com/MakuZo">MakuZo</a></span>
+            <span class="text-muted">© 2018 <a href="{% url 'home' %}">bloggy</a> by <a href="https://github.com/MakuZo">MakuZo</a></span>
         </div>
     </div>
     {% endblock %}
+    <script src="https://fastcdn.org/Readmore.js/2.1.0/readmore.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
         crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"

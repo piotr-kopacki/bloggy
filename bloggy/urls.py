@@ -15,14 +15,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import user_passes_test
 from .api import router
 
+logged_users_redirect = user_passes_test(lambda u: u.is_anonymous, '/')
 
 urlpatterns = [
     path('', include('app.urls')),
     path('api-v1/', include(router.urls)),
     path('api-auth/', include('rest_auth.urls')),
     path('api-auth/registration/', include('rest_auth.registration.urls')),
-    path('users/', include('django.contrib.auth.urls')),
+    path('users/login/', logged_users_redirect(auth_views.LoginView.as_view()), name='login'),
+    path('users/logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('users/password_reset/', logged_users_redirect(auth_views.PasswordResetView.as_view()), name='password_reset'),
+    path('users/password_reset/done/', logged_users_redirect(auth_views.PasswordResetDoneView.as_view()), name='password_reset_done'),
+    path('users/reset/<uidb64>/<token>/', logged_users_redirect(auth_views.PasswordResetConfirmView.as_view()), name='password_reset_confirm'),
+    path('users/reset/done/', logged_users_redirect(auth_views.PasswordResetCompleteView.as_view()), name='password_reset_complete'),
     path('admin/', admin.site.urls),
 ]

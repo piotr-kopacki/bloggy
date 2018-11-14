@@ -14,6 +14,6 @@ class DisallowVoteChanges(permissions.BasePermission):
     message = "Can't update votes."
 
     def has_object_permission(self, request, view, obj):
-        if request.data.get('downvotes') or request.data.get('upvotes'):
+        if request.data.get("downvotes") or request.data.get("upvotes"):
             return False
         return True

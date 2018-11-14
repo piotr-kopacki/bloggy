@@ -5,9 +5,9 @@
 {% load mptt_tags %}
 <hr>
 <h4>{{ user.username }}</h3>
-<p data-toggle="tooltip" data-placement="top" title="{{ user.date_joined }}">
-    Joined: {{ user.date_joined|naturaltime }} 
-    <br> 
+<p>
+    <time title="{{ user.date_joined }}" datetime="{{ user.date_joined }}" >Joined: {{ user.date_joined|naturaltime }}</time>
+    <br>
     Points: {{ user.points }}
 </p>
 <hr>

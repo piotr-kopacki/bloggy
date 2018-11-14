@@ -87,7 +87,12 @@ body > * {
   background-color: rgba(1, 90, 8, 0.2);
 }
 
- @media only screen and (max-width: 600px) {
+.container.content {
+  padding-top:    50px;
+  padding-bottom: 50px;
+}
+
+ @media only screen and (max-width: 770px) {
   .navbar {
     position: relative;
   }
@@ -118,7 +123,37 @@ body > * {
     width: 100%;
     color: white;
     text-align: center;
-    height: 40px; /* Set the fixed height of the footer here */
-    line-height: 40px; /* Vertically center the text there */
+    height: 40px; 
+    line-height: 40px;
     background-color: #f5f5f5;
 }
+
+/* Custom Markdown Styling */
+.content h1{
+  font-size: 18px;
+}
+
+.content h2{
+  font-size: 16px;
+}
+
+.content h3{
+  font-size: 16px;
+}
+
+.content h4{
+  font-size: 16px;
+}
+
+.content h5{
+  font-size: 16px;
+}
+
+.content h6{
+  font-size: 16px;
+}
+
+.content pre code {
+  background-color: rgb(246, 246, 246);
+}
+/* ----------------------- */

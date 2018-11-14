@@ -1,10 +1,9 @@
 {% extends 'app/base.html' %}
 
 {% block content %}
-{% load mptt_tags %}
 <br>
 {% load mptt_tags %}
-<ul class="entry" style="padding-left: 10px;">
+<ul class="entry">
     {% if not entries %}
     <h1>Oops. There are no discussions to show.</h1>
     {% endif %}
@@ -56,4 +55,5 @@
     {% endif %}
     {% endrecursetree %}
 </ul>
+<p class="text-muted text-center">End of discussion</p>
 {% endblock %}

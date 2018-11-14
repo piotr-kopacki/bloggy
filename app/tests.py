@@ -1,7 +1,7 @@
 from django.test import TestCase
 from .models import Entry, User
 
-from bleach_whitelist import markdown_tags, markdown_attrs
+from django.conf import settings
 
 import bleach
 import markdown
@@ -23,6 +23,7 @@ see [Wikipedia](http://en.wikipedia.org/wiki/Markdown)
 * list
 """
 
+
 class EntryTestCase(TestCase):
     def setUp(self):
         Entry.objects.create(
@@ -37,7 +38,9 @@ class EntryTestCase(TestCase):
         """Test if content_formatted equals content as it's part of custom save method"""
         e = Entry.objects.get(pk=1)
         e.save()
-        self.assertEqual(e.content, bleach.clean(MARKDOWN_SAMPLE, markdown_tags, markdown_attrs))
-        e.content = MARKDOWN_SAMPLE[:50]
-        e.save()
-        self.assertEqual(markdown.markdown(e.content), e.content_formatted)
+        self.assertEqual(
+            e.content,
+            bleach.clean(
+                MARKDOWN_SAMPLE, settings.MARKDOWN_TAGS, settings.MARKDOWN_ATTRS
+            ),
+        )

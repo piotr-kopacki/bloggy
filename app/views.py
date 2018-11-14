@@ -30,7 +30,7 @@ class UserDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         user_entries = Entry.objects.filter(user=super().get_object().pk)
         last_discussions = []
-        added_entries = 0 
+        added_entries = 0
         for entry in user_entries:
             if added_entries == 5:
                 break
@@ -40,9 +40,8 @@ class UserDetailView(DetailView):
                 added_entries += 1
             for node in list(entry.get_family()):
                 last_discussions.append(node)
-        context['user'].entries = last_discussions
-        context['user'].entries_count = user_entries.count()
-        context['user'].points = context['user'].entries_count + sum([entry.upvotes.count() for entry in user_entries])
+        context["user"].entries = last_discussions
+        context["user"].entries_count = user_entries.count()
         return context
 
 
@@ -60,7 +59,9 @@ def home(request, sorting="new"):
             Entry.objects.root_nodes()
             .filter(created_date__gte=timezone.now() - timedelta(hours=6))
             .annotate(
-                hotness=((Count("upvotes") + Count("downvotes"))*0.5 +Count("children"))
+                hotness=(
+                    (Count("upvotes") + Count("downvotes")) * 0.5 + Count("children")
+                )
             )
             .order_by("-hotness")
         )
