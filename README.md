@@ -1,6 +1,8 @@
-# bloggy
 
-A microblog with reddit-like comment system.
+<h1 align="center">bloggy</h1>
+<p align="center">A microblog with reddit-like comment system.</p>
+<p align="center">Try live <a href="bloggy.makuzo.usermd.net">here</a></p>
+<img align="center" src="https://i.imgur.com/RIV2seF.png"></img>
 
 ### Installing
 
@@ -17,7 +19,7 @@ $ python3 manage.py runserver
 ```
 
 ## Running the tests
-Use test parameter
+#
 ```sh
 $ python3 manage.py test
 ```
