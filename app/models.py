@@ -16,6 +16,13 @@ class User(AbstractUser):
 
     EMAIL_FIELD = "email"
 
+    @property
+    def points(self):
+        user_entries = Entry.objects.filter(user=self.pk)
+        return user_entries.count() + sum(
+            [entry.upvotes.count() for entry in user_entries]
+        )
+
 
 class Entry(MPTTModel):
     """
@@ -60,13 +67,6 @@ class Entry(MPTTModel):
             settings.MARKDOWN_ATTRS,
         )
         super().save(*args, **kwargs)
-
-    @property
-    def points(self):
-        user_entries = Entry.objects.filter(user=self.pk)
-        return user_entries.count() + sum(
-            [entry.upvotes.count() for entry in user_entries]
-        )
 
     @property
     def votes_sum(self):
