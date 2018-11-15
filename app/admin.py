@@ -1,9 +1,10 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.urls import reverse
-from .models import User, Entry
+
+from .models import Entry, User
 
 
 class UserCreateForm(UserCreationForm):

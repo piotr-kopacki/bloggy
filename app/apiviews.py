@@ -1,11 +1,12 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import Entry
-from .permissions import IsOwnerOrReadOnly, DisallowVoteChanges
-from .serializers import EntrySerializer
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Entry
+from .permissions import DisallowVoteChanges, IsOwnerOrReadOnly
+from .serializers import EntrySerializer
 
 
 class EntryViewSet(viewsets.ModelViewSet):
@@ -29,13 +30,14 @@ class VoteViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def create(self, request):
+        context = {'request': self.request}
         pk = request.data.get("pk")
         votetype = request.data.get("votetype")
         if not pk:
             return Response(
                 {"detail": "Provide pk"}, status=status.HTTP_400_BAD_REQUEST
             )
-        if not votetype:
+        if not votetype or votetype not in ['upvote', 'downvote']:
             return Response(
                 {"detail": "Provide votetype"}, status=status.HTTP_400_BAD_REQUEST
             )
@@ -47,7 +49,7 @@ class VoteViewSet(viewsets.ViewSet):
                 entry.upvotes.remove(request.user)
             else:
                 entry.upvotes.add(request.user)
-            return Response(EntrySerializer(entry).data)
+            return Response(EntrySerializer(entry, context=context).data)
         else:
             if request.user in entry.upvotes.all():
                 entry.upvotes.remove(request.user)
@@ -55,4 +57,7 @@ class VoteViewSet(viewsets.ViewSet):
                 entry.downvotes.remove(request.user)
             else:
                 entry.downvotes.add(request.user)
-            return Response(EntrySerializer(entry).data)
+            return Response(EntrySerializer(entry, context=context).data)
+    
+    def get_serializer_context(self):
+        return {'request': self.request}

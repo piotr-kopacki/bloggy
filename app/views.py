@@ -1,15 +1,25 @@
-from django.contrib.auth import login, authenticate
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.views.generic.detail import DetailView
-from django.shortcuts import render, redirect
-from django.db.models import Count
-from django.utils import timezone
-
-from .models import Entry, User
-from .forms import SignUpForm
-
-from mptt.utils import get_cached_trees
 from datetime import timedelta
+
+from django.contrib.auth import authenticate, login
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.db.models import Count
+from django.shortcuts import redirect, render
+from django.utils import timezone
+from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
+from mptt.utils import get_cached_trees
+
+from .forms import SignUpForm
+from .models import Entry, User
+
+
+class UserRankingView(ListView):
+    model = User
+    paginate_by = 10
+    template_name = "app/ranking.html"
+
+    def get_queryset(self):
+        return sorted(User.objects.all(), key=lambda u: u.points, reverse=True)
 
 
 class EntryDetailView(DetailView):
@@ -17,9 +27,13 @@ class EntryDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["entries"] = (
-            super().get_object().get_root().get_descendants(include_self=True)
-        )
+        queryset = []
+        entry = super().get_object()
+        if entry.parent:
+            queryset.append(entry.parent)
+        for e in entry.get_descendants(include_self=True):
+            queryset.append(e)
+        context["entries"] = queryset
         return context
 
 
@@ -27,6 +41,9 @@ class UserDetailView(DetailView):
     model = User
 
     def get_context_data(self, **kwargs):
+        """
+        Shows only 5 last discussions user participated in
+        """
         context = super().get_context_data(**kwargs)
         user_entries = Entry.objects.filter(user=super().get_object().pk)
         last_discussions = []
@@ -34,6 +51,7 @@ class UserDetailView(DetailView):
         for entry in user_entries:
             if added_entries == 5:
                 break
+            # Skip entries which are already in the list
             elif any([entry.pk == discussion.pk for discussion in last_discussions]):
                 continue
             else:
@@ -111,6 +129,9 @@ def hot(request):
 
 
 def signup(request):
+    """
+    Default signup view
+    """
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():

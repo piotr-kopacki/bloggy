@@ -1,5 +1,6 @@
 import os
-from bleach_whitelist import markdown_tags, markdown_attrs
+
+from bleach_whitelist import markdown_attrs, markdown_tags
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -44,7 +45,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    )
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 15,
 }
 
 SERIALIZERS = {
@@ -146,3 +149,5 @@ LOGOUT_REDIRECT_URL = 'home'
 # Custom bleach whitelist
 MARKDOWN_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'b', 'i', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'strong', 'em', 'tt', 'p', 'pre', 'br', 'span', 'blockquote', 'code', 'ul', 'ol', 'li', 'dd', 'dt', 'a', 'lt', 'gt']
 MARKDOWN_ATTRS = {'a': ['href', 'alt', 'title'], 'code': ['class']}
+
+ALLOWED_HOSTS = ['*']

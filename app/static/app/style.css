@@ -1,5 +1,7 @@
 .navbar {
   background-color: lightseagreen;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 html, body {
@@ -13,7 +15,9 @@ body > * {
   flex-shrink: 0;
 }
 
-
+.navbar-nav {
+  flex-direction: row;
+}
 /* change the brand and text color */
 .navbar .navbar-brand,
 .navbar .navbar-text {
@@ -157,3 +161,19 @@ body > * {
   background-color: rgb(246, 246, 246);
 }
 /* ----------------------- */
+
+.ranking {
+  align-self: center;
+}
+
+.ranking-list:nth-child(1) {
+  font-size: 28px;
+}
+
+.ranking-list:nth-child(2) {
+  font-size: 24px;
+}
+
+.ranking-list:nth-child(3) {
+  font-size: 20px;
+}
