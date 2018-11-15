@@ -2,7 +2,7 @@
 <h1 align="center">bloggy</h1>
 <p align="center">A microblog with reddit-like comment system.</p>
 <p align="center">Try live <a href="http://bloggy.makuzo.usermd.net">here</a></p>
-<img align="center" src="https://i.imgur.com/RIV2seF.png"></img>
+<img align="center" src="https://i.imgur.com/I7NAE2c.png"></img>
 
 ### Installing
 
