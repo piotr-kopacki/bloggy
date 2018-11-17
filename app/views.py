@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.auth import authenticate, login
+from django.conf import settings
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Count
 from django.shortcuts import redirect, render
@@ -90,7 +91,7 @@ def home(request, sorting="new"):
             .annotate(overall_votes=(Count("upvotes") - Count("downvotes")))
             .order_by("-overall_votes")
         )
-    paginator = Paginator(root_nodes, 25)
+    paginator = Paginator(root_nodes, settings.PAGINATE_ENTRIES_BY)
     page = request.GET.get("page")
     queryset = []
     try:

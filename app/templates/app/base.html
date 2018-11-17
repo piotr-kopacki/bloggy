@@ -204,10 +204,10 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <div class="navbar-nav mr-auto"></div>
-                <form class="form-inline my-2 my-lg-0" action="{% url 'login' %}" method="POST">
+                <form class="form-inline my-2 my-lg-0" action="{% url 'account_login' %}" method="POST">
                     {% csrf_token %}
                     <div class="input-group">
-                        <input name="username" type="text" class="form-control " placeholder="Username" aria-label="Username"
+                        <input name="login" type="text" class="form-control " placeholder="Username" aria-label="Username"
                             aria-describedby="basic-addon1" required>
                         <input name="password" type="password" class="form-control mr-sm-2 4" placeholder="Password"
                             aria-label="Password" aria-describedby="basic-addon1" required>
@@ -227,7 +227,7 @@
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
                     <a class="dropdown-item" href="{% url 'user-detail-view' user.pk %}">Profile</a>
-                    <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                    <a class="dropdown-item" href="{% url 'account_logout' %}">Logout</a>
                 </div>
             </div>
             {% endif %}
@@ -251,7 +251,7 @@
             </div>
         </form>
         {% else %}
-        <h4><a href="{% url 'login' %}">Log-in</a> or <a href="{% url 'signup' %}">Register</a> to add a discussion!</h4>
+        <h4><a href="{% url 'account_login' %}">Log-in</a> or <a href="{% url 'account_signup' %}">Register</a> to add a discussion!</h4>
         {% endif %}
         <hr>
         {% load mptt_tags %}
@@ -272,18 +272,18 @@
                     <a href="{% url 'user-detail-view' node.user.pk %}" style="margin-left: 5px; font-size: 14px;"><strong>{{ node.user.username }}</strong></a>
                     {% load humanize %}
                     <em><a href="{% url 'entry-detail-view' node.pk %}" style="font-size: 12px;">{{ node.created_date|naturaltime }}</a></em>
-                    <strong class="node" id="votes{{node.pk}}">{{ node.votes_sum }}</strong>
-                    {% if user.is_authenticated %}
-                    <button class="upvote {{ node.style_class }}" type="upvote" onclick="vote({{node.pk}}, 'upvote')"
-                        id="upvote{{node.pk}}">&#43;</button>
-                    <button class="downvote {{ node.style_class }}" type="downvote" onclick="vote({{node.pk}}, 'downvote')"
-                        id="downvote{{node.pk}}">&#8722;</button>
-                    <a href="#" class="answerButton" value="{{node.pk}}" style="font-size: 12px">answer</a>
-                    {% if node.user.pk == user.pk %}
-                    <a href="#" class="editButton" value="{{node.pk}}" style="font-size: 12px">edit</a>
-                    <a href="#" class="deleteButton" value="{{node.pk}}" style="font-size: 12px; color: red;">delete</a>
-                    {% endif %}
-                    {% endif %}
+                        <strong class="node" id="votes{{node.pk}}">{{ node.votes_sum }}</strong>
+                        {% if user.is_authenticated %}
+                        <button class="upvote {{ node.style_class }}" type="upvote" onclick="vote({{node.pk}}, 'upvote')"
+                            id="upvote{{node.pk}}">&#43;</button>
+                        <button class="downvote {{ node.style_class }}" type="downvote" onclick="vote({{node.pk}}, 'downvote')"
+                            id="downvote{{node.pk}}">&#8722;</button>
+                        <a href="#" class="answerButton" value="{{node.pk}}" style="font-size: 12px">answer</a>
+                        {% if node.user.pk == user.pk %}
+                        <a href="#" class="editButton" value="{{node.pk}}" style="font-size: 12px">edit</a>
+                        <a href="#" class="deleteButton" value="{{node.pk}}" style="font-size: 12px; color: red;">delete</a>
+                        {% endif %}
+                        {% endif %}
                 </p>
                 <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px; word-wrap: break-word;">{{ node.content_formatted|safe }}</div>
                 <form class="editForm" id="editForm{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}" maxlength="4000">

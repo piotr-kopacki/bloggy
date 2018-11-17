@@ -2,7 +2,7 @@
 
 {% block content %}
 <br>
-<form method="POST" action="{% url 'signup' %}">
+<form method="POST" action="{% url 'account_signup' %}">
         {% csrf_token %}
         <div class="form-group">
             <label for="usernameInput">Username</label>

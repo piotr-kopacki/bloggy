@@ -5,10 +5,6 @@ from bleach_whitelist import markdown_attrs, markdown_tags
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
-
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag')
 
 DEBUG = bool(int(os.environ.get('DJANGO_DEBUG', True)))
@@ -134,20 +130,30 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# django-rest-auth settings
+# Django auth settings
 
 AUTH_USER_MODEL = 'app.User'
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'EMAIL'
+ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = True
 SITE_ID = 5
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+ALLOWED_HOSTS = ['*']
 
 # Custom bleach whitelist
+
 MARKDOWN_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'b', 'i', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'strong', 'em', 'tt', 'p', 'pre', 'br', 'span', 'blockquote', 'code', 'ul', 'ol', 'li', 'dd', 'dt', 'a', 'lt', 'gt']
 MARKDOWN_ATTRS = {'a': ['href', 'alt', 'title'], 'code': ['class']}
 
-ALLOWED_HOSTS = ['*']
+
+# bloggy custom settings
+
+PAGINATE_ENTRIES_BY = 15
