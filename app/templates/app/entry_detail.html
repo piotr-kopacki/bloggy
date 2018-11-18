@@ -31,18 +31,22 @@
             <button class="upvote {{ node.style_class }}" type="upvote" onclick="vote({{node.pk}}, 'upvote')" id="upvote{{node.pk}}">&#43;</button>
             <button class="downvote {{ node.style_class }}" type="downvote" onclick="vote({{node.pk}}, 'downvote')" id="downvote{{node.pk}}">&#8722;</button>
             <a href="#" class="answerButton" value="{{node.pk}}" style="font-size: 12px">answer</a>
-            {% if node.user.pk == user.pk %}
+            {% if node.user.pk == user.pk and not node.deleted %}
             <a href="#" class="editButton" value="{{node.pk}}" style="font-size: 12px">edit</a>
             <a href="#" class="deleteButton" value="{{node.pk}}" style="font-size: 12px; color: red;">delete</a>
             {% endif %}
             {% endif %}
         </p>
+        {% if not node.deleted %}
         <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px; word-wrap: break-word; {% if entry.pk == node.pk %}background-color: yellow;{% endif %}">{{ node.content_formatted|safe }}</div>
         <form class="editForm" id="editForm{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}"
             maxlength="4000">
             <textarea class="form-control" rows="3" required>{{ node.content|safe }}</textarea>
             <button type="submit" class="btn btn-secondary btn-sm">Edit</button>
         </form>
+        {% else %}
+            <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px; word-wrap: break-word;"><em>deleted</em></div>
+        {% endif %}
         <form class="commentForm" id="form{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
             <div class="form-group">
                 <textarea class="form-control" rows="3" required></textarea>

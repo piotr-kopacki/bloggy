@@ -39,6 +39,7 @@ class Entry(MPTTModel):
     upvotes: stores users who upvoted an Entry
     downvotes: stores user who downvoted an Entry
     created_date: date of creation
+    deleted: true if entry is marked as deleted
     """
 
     user = models.ForeignKey(
@@ -58,6 +59,7 @@ class Entry(MPTTModel):
         settings.AUTH_USER_MODEL, blank=True, related_name="downvotes"
     )
     created_date = models.DateTimeField(default=timezone.now)
+    deleted = models.BooleanField(default=False)
 
     class MPTTMeta:
         order_insertion_by = ["-created_date"]
@@ -77,6 +79,13 @@ class Entry(MPTTModel):
         )
         super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        """
+        On delete mark the entry as deleted, don't delete from db.
+        """
+        self.deleted = True
+        self.save()
+
     @property
     def votes_sum(self):
         """
@@ -91,6 +100,13 @@ class Entry(MPTTModel):
         """
         return self.get_root().pk
 
+    @property
+    def has_children(self):
+        """
+        True if entry has children nodes
+        """
+        return self.get_children().exists()
+
     def parent_formatted(self):
         """
         Formats parent node into a hyperlink
@@ -100,8 +116,6 @@ class Entry(MPTTModel):
         url = reverse("admin:app_entry_change", args=(self.parent.pk,))
         return format_html('<a href="{}">#{}</a>', url, self.parent.pk)
 
-    parent_formatted.short_description = "Parent entry"
-
     def user_formatted(self):
         """
         Formats author into a hyperlink
@@ -109,4 +123,5 @@ class Entry(MPTTModel):
         url = reverse("admin:app_user_change", args=(self.user.pk,))
         return format_html('<a href="{}">{}</a>', url, self.user.username)
 
+    parent_formatted.short_description = "Parent entry"
     user_formatted.short_description = "User"

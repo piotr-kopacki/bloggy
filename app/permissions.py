@@ -1,5 +1,13 @@
 from rest_framework import permissions
 
+class DeletedReadOnly(permissions.BasePermission):
+    message = "Deleted entries are read-only"
+
+    def has_object_permission(self, request, view, obj):
+        if obj.deleted and request.method not in permissions.SAFE_METHODS:
+            return False
+        return True
+
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     message = "Not an owner."

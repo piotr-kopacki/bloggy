@@ -5,14 +5,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Entry
-from .permissions import DisallowVoteChanges, IsOwnerOrReadOnly
+from .permissions import DisallowVoteChanges, IsOwnerOrReadOnly, DeletedReadOnly
 from .serializers import EntrySerializer
 
 
 class EntryViewSet(viewsets.ModelViewSet):
     queryset = Entry.objects.all()
     serializer_class = EntrySerializer
-    permission_classes = [IsOwnerOrReadOnly, IsAuthenticated, DisallowVoteChanges]
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticated, DisallowVoteChanges, DeletedReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

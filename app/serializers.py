@@ -5,6 +5,8 @@ from .models import Entry, User
 
 class EntrySerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.pk")
+    content = serializers.SerializerMethodField()
+    content_formatted = serializers.SerializerMethodField()
     upvotes = serializers.SerializerMethodField()
     downvotes = serializers.SerializerMethodField()
     user_upvoted = serializers.SerializerMethodField()
@@ -17,6 +19,7 @@ class EntrySerializer(serializers.ModelSerializer):
             "content_formatted",
             "created_date",
             "user",
+            "parent",
             "upvotes",
             "downvotes",
             "user_upvoted",
@@ -40,6 +43,12 @@ class EntrySerializer(serializers.ModelSerializer):
 
     def get_downvotes(self, obj):
         return obj.downvotes.count()
+
+    def get_content(self, obj):
+        return obj.content if not obj.deleted else "deleted"
+
+    def get_content_formatted(self, obj):
+        return obj.content_formatted if not obj.deleted else "deleted"
 
     def get_user_upvoted(self, obj):
         u = self.context.get("request").user
