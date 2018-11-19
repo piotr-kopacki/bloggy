@@ -146,6 +146,7 @@ SITE_ID = 5
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+SECURE_SSL_REDIRECT = True if not DEBUG else False
 ALLOWED_HOSTS = ['*']
 
 # Custom bleach whitelist

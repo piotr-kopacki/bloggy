@@ -17,6 +17,25 @@ class EntryViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def list(self, request):
+        queryset = self.get_queryset()
+        for entry in queryset:
+            if entry.deleted:
+                entry.content = "deleted"
+                entry.content_formatted = "<em>deleted<em>"
+        context = {'request': request}
+        serializer = self.serializer_class(queryset, many=True, context=context)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        entry = get_object_or_404(Entry, pk=pk)
+        if entry.deleted:
+            entry.content = "deleted"
+            entry.content_formatted = "<em>deleted<em>"
+        context = {'request': request}
+        serializer = self.serializer_class(entry, many=False, context=context)
+        return Response(serializer.data)
+
 
 class VoteViewSet(viewsets.ViewSet):
     """

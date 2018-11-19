@@ -83,9 +83,12 @@ class Entry(MPTTModel):
         """
         On delete mark the entry as deleted, don't delete from db.
         """
-        self.deleted = True
-        self.save()
-
+        if self.has_children:
+            self.deleted = True
+            self.save()
+        else:
+            super().delete(*args, **kwargs)
+    
     @property
     def votes_sum(self):
         """
