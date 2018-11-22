@@ -27,6 +27,70 @@ see [Wikipedia](http://en.wikipedia.org/wiki/Markdown)
 """
 
 
+class EntryAPIViewTestCase(APITestCase):
+    def test_allow_get_only_when_deleted(self):
+        user = User.objects.create(username="TestUser")
+        entry = Entry.objects.create(pk=1, content="test", user=user, deleted=True)
+        self.client.force_authenticate(user=user)
+        url = reverse("entry-detail", kwargs={"pk": 1})
+        data = {"content": ""}
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.patch(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_deleted_entry_content(self):
+        user = User.objects.create(username="TestUser")
+        entry = Entry.objects.create(pk=1, content="test", user=user, deleted=True)
+        self.client.force_authenticate(user=user)
+        url = reverse("entry-detail", kwargs={"pk": 1})
+        response = self.client.get(url)
+        self.assertEqual(response.data["content"], "deleted")
+        self.assertEqual(response.data["content_formatted"], "<em>deleted</em>")
+
+    def test_allow_post_when_owner_only(self):
+        user = User.objects.create(username="TestUser")
+        owner = User.objects.create(username="Owner", email="test@test.test")
+        entry = Entry.objects.create(pk=1, content="test", user=owner)
+        self.client.force_authenticate(user=user)
+        url = reverse("entry-detail", kwargs={"pk": 1})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = {"content": ""}
+        response = self.client.patch(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_allow_authenticated_users_only(self):
+        user = User.objects.create(username="TestUser")
+        entry = Entry.objects.create(pk=1, content="test", user=user)
+        url = reverse("entry-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        url = reverse("entry-detail", kwargs={'pk': 1})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class EntryViewSetTestCase(TestCase):
+    def test_soft_deletion(self):
+        u = User.objects.create(username="TestUser")
+        e = Entry.objects.create(pk=1, user=u, content="test")
+        e2 = Entry.objects.create(pk=2, user=u, content="test2", parent=e)
+        e.delete()
+        self.assertIsNotNone(Entry.objects.get(pk=1))
+        self.assertIsNotNone(Entry.objects.get(pk=2))
+        self.assertTrue(e.deleted)
+
+    def test_hard_deletion(self):
+        u = User.objects.create(username="TestUser")
+        e = Entry.objects.create(pk=1, user=u, content="test")
+        e2 = Entry.objects.create(pk=2, user=u, content="test2", parent=e)
+        e2.delete()
+        e.delete()
+        self.assertRaises(Entry.DoesNotExist, Entry.objects.get, pk=1)
+        self.assertRaises(Entry.DoesNotExist, Entry.objects.get, pk=2)
+
+
 class VoteViewSetTestCase(APITestCase):
     def test_allow_post_only(self):
         user = User.objects.create(username="TestUser")

@@ -31,7 +31,7 @@ class EntryViewSet(viewsets.ModelViewSet):
         entry = get_object_or_404(Entry, pk=pk)
         if entry.deleted:
             entry.content = "deleted"
-            entry.content_formatted = "<em>deleted<em>"
+            entry.content_formatted = "<em>deleted</em>"
         context = {'request': request}
         serializer = self.serializer_class(entry, many=False, context=context)
         return Response(serializer.data)

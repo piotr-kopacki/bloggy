@@ -268,7 +268,7 @@
             <li style="border-left: 1px solid rgba(0, 0, 0, 0.1);">
                 {% endif %}
                 <a class="anchor" id="{{ node.pk }}"></a>
-                <p style="margin-bottom: 2px">
+                <p style="margin-bottom: 1px">
                     <a href="{% url 'user-detail-view' node.user.pk %}" style="margin-left: 5px; font-size: 14px;"><strong>{{ node.user.username }}</strong></a>
                     {% load humanize %}
                     <em><a href="{% url 'entry-detail-view' node.pk %}" style="font-size: 12px;">{{ node.created_date|naturaltime }}</a></em>
@@ -292,7 +292,7 @@
                     <button type="submit" class="btn btn-secondary btn-sm">Edit</button>
                 </form>
                 {% else %}
-                <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px; word-wrap: break-word;"><em>deleted</em></div>
+                <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px; word-wrap: break-word; margin-bottom: 10px;"><em>deleted</em></div>
                 {% endif %}
                 <form class="commentForm" id="form{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
                     <div class="form-group">
@@ -304,7 +304,7 @@
                 {% if node.is_root_node %}
                 <div style="margin-bottom: 12px;"></div>
                 {% endif %}
-                <ul class="children entry">
+                <ul class="children entry" style="padding-left: 25px">
                     {{ children }}
                 </ul>
                 {% endif %}
