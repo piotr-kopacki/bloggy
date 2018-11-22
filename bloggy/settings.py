@@ -7,9 +7,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag')
 
-DEBUG = True
+DEBUG = bool(int(os.environ.get('DJANGO_DEBUG', 1)))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -129,6 +129,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL =  '/media/'
+
+ENV_PATH = os.path.abspath(os.path.dirname(__file__)) if not DEBUG else None
+STATIC_ROOT = os.path.join(ENV_PATH, '../public/static/') if not DEBUG else None
+MEDIA_ROOT = os.path.join(ENV_PATH, '../public/media/') if not DEBUG else None
 
 # Django auth settings
 
@@ -147,7 +152,6 @@ SITE_ID = 5
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 SECURE_SSL_REDIRECT = True if not DEBUG else False
-ALLOWED_HOSTS = ['*']
 
 # Custom bleach whitelist
 
