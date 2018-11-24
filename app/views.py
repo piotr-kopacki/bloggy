@@ -1,17 +1,30 @@
 from datetime import timedelta
 
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from mptt.utils import get_cached_trees
 
 from .forms import SignUpForm
-from .models import Entry, User
+from .models import Entry, User, Notification
+
+class NotificationListView(LoginRequiredMixin, ListView):
+    model = Notification
+    paginate_by = 25
+    template_name = "app/notifications.html"
+    login_url = reverse_lazy('account_login')
+    context_object_name = "notifications_paginated"
+
+    def get_queryset(self):
+        return Notification.objects.filter(target=self.request.user)
+
 
 
 class UserRankingView(ListView):

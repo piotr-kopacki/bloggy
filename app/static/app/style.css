@@ -177,3 +177,27 @@ body > * {
 .ranking-list:nth-child(3) {
   font-size: 20px;
 }
+
+.full-notification {
+  margin-top: 0px;
+  background-color: rgb(236, 236, 236);
+}
+
+.full-notification.notification-unread {
+  background-color: transparent;
+}
+
+.notification {
+  font-size: 12px;
+  margin-top: 0px;
+  background-color: rgb(236, 236, 236);
+}
+
+.notification.notification-unread {
+  background-color: transparent;
+}
+
+.readnotification {
+  border-style: none;
+  background-color: transparent;
+}

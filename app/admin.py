@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.urls import reverse
 
-from .models import Entry, User
+from .models import Entry, User, Notification
 
 
 class UserCreateForm(UserCreationForm):
@@ -38,3 +38,4 @@ class EntryAdmin(admin.ModelAdmin):
 
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Entry, EntryAdmin)
+admin.site.register(Notification)

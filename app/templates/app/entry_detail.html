@@ -45,7 +45,7 @@
             <button type="submit" class="btn btn-secondary btn-sm">Edit</button>
         </form>
         {% else %}
-            <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px; word-wrap: break-word;"><em>deleted</em></div>
+            <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px; word-wrap: break-word; {% if entry.pk == node.pk %}background-color: yellow;{% endif %}"><em>deleted</em></div>
         {% endif %}
         <form class="commentForm" id="form{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
             <div class="form-group">

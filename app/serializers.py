@@ -1,6 +1,36 @@
 from rest_framework import serializers
 
-from .models import Entry, User
+from .models import Entry, User, Notification
+
+class NotificationSerializer(serializers.ModelSerializer):
+    sender = serializers.ReadOnlyField(source="sender.pk")
+    object = serializers.ReadOnlyField(source="object_id")
+    target = serializers.ReadOnlyField(source="target.pk")
+
+    class Meta:
+        model = Notification
+        read_only_fields = (
+            "id",
+            "sender",
+            "type",
+            "object",
+            "target",
+            "created_date",
+        )
+        fields = (
+            "id",
+            "sender",
+            "type",
+            "object",
+            "target",
+            "created_date",
+            "read",
+        )
+    
+    def validate_read(self, value):
+        if value == False:
+            raise serializers.ValidationError("Cannot unread notifications")
+        return value
 
 
 class EntrySerializer(serializers.ModelSerializer):

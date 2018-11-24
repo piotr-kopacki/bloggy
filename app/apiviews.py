@@ -4,9 +4,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Entry
-from .permissions import DisallowVoteChanges, IsOwnerOrReadOnly, DeletedReadOnly
-from .serializers import EntrySerializer
+from .models import Entry, Notification
+from .permissions import DisallowVoteChanges, IsOwnerOrReadOnly, DeletedReadOnly, IsTarget
+from .serializers import EntrySerializer, NotificationSerializer
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsTarget, IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(target=self.request.user)
 
 
 class EntryViewSet(viewsets.ModelViewSet):

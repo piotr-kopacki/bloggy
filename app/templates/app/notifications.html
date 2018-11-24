@@ -1,0 +1,41 @@
+{% extends 'app/base.html' %}
+{% load humanize %}
+{% block content %}
+<br>
+<p class="text-muted text-center">Notifications</p>
+<hr style="margin-bottom: 0px;">
+{% for notification in notifications_paginated %}
+<div class="full-notification {% if not notification.read %}notification-unread{% endif %}" id="{{notification.id}}">
+    <li>
+        {% if notification.type == 'user_mentioned' %}
+        <a href="{% url 'user-detail-view' notification.sender.pk %}">{{notification.sender.username }}</a> has
+        mentioned you in his entry <a href="{% url 'entry-detail-view' notification.object.pk %}">'{{notification.object.content|truncatechars:25}}'</a>
+        {% endif %}
+        {% if notification.type == 'user_replied' %}
+        <a href="{% url 'user-detail-view' notification.sender.pk %}">{{notification.sender.username }}</a> has replied
+        to you <a href="{% url 'entry-detail-view' notification.object.pk %}">'{{notification.object.content|truncatechars:25}}'</a>
+        {% endif %}
+        {{notification.created_date|naturaltime}}
+        {% if not notification.read %}
+        <button class="readnotification fas fa-check" id="{{notification.id}}"></button>
+        {% endif %}
+    </li>
+    <hr style="margin-bottom: 0px;">
+</div>
+{% endfor %}
+<ul class="pagination">
+    {% if page_obj.has_previous %}
+    <li>
+        <span style="margin-right: 8px;"><a href="?page={{ page_obj.previous_page_number }}">Previous</a></span>
+    </li>
+    {% endif %}
+    <li class="">
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.</span>
+    </li>
+    {% if page_obj.has_next %}
+    <li>
+        <span style="margin-left: 8px;"><a href="?page={{ page_obj.next_page_number }}">Next</a></span>
+    </li>
+    {% endif %}
+</ul>
+{% endblock %}

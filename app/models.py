@@ -2,11 +2,36 @@ import bleach
 import markdown
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from mptt.models import MPTTModel, TreeForeignKey
+
+
+class Notification(models.Model):
+    """
+    Generic notification class
+
+    ::type   - describes the type of notification to be later used in templates
+    ::sender - user who is responsible for making the notification
+    ::object - context object
+    ::target - target user who will be notified
+    ::read   - logic if notification has been read
+    """
+    type = models.CharField(max_length=100, help_text="Used to determine type of notification e.g. user_mentioned or user_replied")
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sender')
+    object_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    object = GenericForeignKey('object_content_type', 'object_id')
+    target = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='target')
+    read = models.BooleanField(default=False)
+    created_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_date']
 
 
 class User(AbstractUser):
@@ -32,16 +57,15 @@ class User(AbstractUser):
 class Entry(MPTTModel):
     """
     Model for a blog entry.
-    user: author of an entry
-    parent: parent entry (None if is root)
-    content: nonformatted content but cleaned with bleach
-    content_formatted: cleaned and formatted with markdown content
-    upvotes: stores users who upvoted an Entry
-    downvotes: stores user who downvoted an Entry
-    created_date: date of creation
-    deleted: true if entry is marked as deleted
+    ::user              - author of an entry
+    ::parent            - parent entry (None if is root)
+    ::content           - nonformatted content but cleaned with bleach
+    ::content_formatted - cleaned and formatted with markdown content
+    ::upvotes           - stores users who upvoted an Entry
+    ::downvotes         - stores user who downvoted an Entry
+    ::created_date      - date of creation
+    ::deleted           - true if entry is marked as deleted
     """
-
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="author"
     )

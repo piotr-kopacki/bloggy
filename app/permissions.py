@@ -9,6 +9,12 @@ class DeletedReadOnly(permissions.BasePermission):
         return True
 
 
+class IsTarget(permissions.BasePermission):
+    message = "You are not allowed to read this notification."
+
+    def has_object_permission(self, request, view, obj):
+        return request.user.pk == obj.target.pk and request.method not in ['DELETE']
+
 class IsOwnerOrReadOnly(permissions.BasePermission):
     message = "Not an owner."
 
