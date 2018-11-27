@@ -157,7 +157,6 @@
                         content: $(this)[0][0].value,
                     },
                     success: function (data) {
-                        console.log(data)
                         window.location.replace("/entry/" + data.id);
                     },
                     error: function (err) {
@@ -200,7 +199,6 @@
         });
         $(document).ready(function () {
             $(".readnotification").on('click', function (e) {
-                console.log("Read!");
                 $.ajaxSetup({
                     beforeSend: function (xhr, settings) {
                         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -218,9 +216,24 @@
                         $("button#"+data.id+".readnotification.fas.fa-check").hide();
                         $(".notification#"+data.id).removeClass("notification-unread");
                         $("div#"+data.id+".full-notification.notification-unread").removeClass("notification-unread");
-                        if(!$(".notification.notification-unread").length){
-                            $(".fas.fa-envelope").attr("class", "fas fa-envelope-open")
-                        }
+                        $.ajax({
+                            url: "{% url 'notifications-list' %}",
+                            type: "GET",
+                            success: function (data) {
+                                var unread = 0;
+                                for(var i = 0; i < data["results"].length; i++){
+                                    if(!data["results"][i].read){
+                                        unread += 1;
+                                    }
+                                }
+                                if(unread === 0){
+                                    $(".fas.fa-envelope").attr("class", "fas fa-envelope-open"); 
+                                    $("#notifications-unread-count").hide();
+                                } else {
+                                    $("#notifications-unread-count")[0].innerHTML = unread.toString();
+                                }
+                            }
+                        });
                     },
                     error: function () {
                         console.log("error");
@@ -263,8 +276,8 @@
             <div class="dropdown show" style="margin-right: 15px;">
                 <a style="color: white;" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false">
-                    {% if notifications_unread %}
-                    <i class="fas fa-envelope"></i>
+                    {% if notifications.unread_count > 0 %}
+                    <i class="fas fa-envelope"><span class="badge badge-pill badge-primary" id="notifications-unread-count">{{ notifications.unread_count }}</span></i>
                     {% else %}
                     <i class="fas fa-envelope-open"></i>
                     {% endif %}

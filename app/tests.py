@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .forms import UserCreationForm
-from .models import Entry, User
+from .models import Entry, User, Notification
 
 MARKDOWN_SAMPLE = """# hello, This is Markdown Live Preview
 ----
@@ -25,7 +25,34 @@ see [Wikipedia](http://en.wikipedia.org/wiki/Markdown)
 **strong**
 * list
 """
+class NotificationAPIViewTestCase(APITestCase):
+    def test_disallow_read_false(self):
+        u = User.objects.create(username="TestUser")
+        e = Entry.objects.create(pk=1, content="test", user=u, deleted=True)
+        n = Notification.objects.create(pk=1, type='user_replied', sender=u, object=e, target=u)
+        self.client.force_authenticate(user=u)
+        url = reverse("notifications-detail", kwargs={'pk': 1})
+        data = {'read': True}
+        response = self.client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = {'read': False}
+        response = self.client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_allow_authenticated_users_only(self):
+        url = reverse("notifications-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_only_users_notifications(self):
+        u = User.objects.create(username="TestUser")
+        u2 = User.objects.create(username="TestUser2", email="email")
+        e = Entry.objects.create(pk=1, content="test", user=u, deleted=True)
+        n = Notification.objects.create(type='user_replied', sender=u, object=e, target=u2)
+        self.client.force_authenticate(user=u)
+        url = reverse("notifications-list")
+        response = self.client.get(url)
+        self.assertEqual(len(response.data['results']), 0)
 
 class EntryAPIViewTestCase(APITestCase):
     def test_allow_get_only_when_deleted(self):
