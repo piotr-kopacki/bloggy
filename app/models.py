@@ -107,6 +107,8 @@ class Entry(MPTTModel):
         """
         On delete mark the entry as deleted, don't delete from db.
         """
+        # Delete notifications related to an entry
+        Notification.objects.filter(object_id=self.pk).delete()
         if self.has_children:
             self.deleted = True
             self.save()

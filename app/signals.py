@@ -16,7 +16,7 @@ def notify_reply_or_mentioned_user(sender, instance, created, **kwargs):
         # Create user_replied notification if entry has parent
         # and delete from usernames the parent user not to notify him
         # with user_mentioned notify
-        if instance.parent:
+        if instance.parent and instance.parent.user.username != instance.user.username:
             if instance.parent.user.username in usernames:
                 usernames.remove(instance.parent.user.username)
             Notification.objects.create(type='user_replied',sender=instance.user, target=instance.parent.user, object=instance)
