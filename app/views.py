@@ -28,6 +28,9 @@ class NotificationListView(LoginRequiredMixin, ListView):
 
 
 class UserRankingView(ListView):
+    """
+    Simple ranking view
+    """
     model = User
     paginate_by = 10
     template_name = "app/ranking.html"
@@ -37,6 +40,13 @@ class UserRankingView(ListView):
 
 
 class EntryDetailView(DetailView):
+    """
+    This view returns a queryset consiting of:
+    - Parent entry (if exists)
+    - Selected entry
+    - Child entries (if exist)
+    as 'entries'
+    """
     model = Entry
 
     def get_context_data(self, **kwargs):
@@ -84,8 +94,12 @@ def home(request, sorting="new"):
     To sort a TreeModel from django-mptt this function first sorts root nodes and then
     rebuilds the trees using get_descendants method on every root.
     """
+    import time
+    now = time.time()
     if sorting == "new":
         root_nodes = Entry.objects.root_nodes()
+    # If entries are sorted by hotness, filter entries from last 6 hours
+    # Also annotate 'hotness' by a simple formula (count of upvotes + count of downvotes + 0,5 * count of children)
     elif sorting == "hot":
         root_nodes = (
             Entry.objects.root_nodes()
@@ -97,13 +111,16 @@ def home(request, sorting="new"):
             )
             .order_by("-hotness")
         )
-    elif sorting == "top":
-        # Top sorting sorts descending by subtracting root's downvotes from upvotes
+    # Top sorting sorts descending by subtracting root's downvotes from upvotes
+    elif sorting == "top":  
         root_nodes = (
             Entry.objects.root_nodes()
             .annotate(overall_votes=(Count("upvotes") - Count("downvotes")))
             .order_by("-overall_votes")
         )
+    # To make pagination possible we need to paginate root nodes only.
+    # Then we need to replace default object_list in the paginator queryset
+    # with a new quryset with rebuilt trees
     paginator = Paginator(root_nodes, settings.PAGINATE_ENTRIES_BY)
     page = request.GET.get("page")
     queryset = []
@@ -112,12 +129,20 @@ def home(request, sorting="new"):
     except PageNotAnInteger:
         queryset = paginator.page(1)
     except EmptyPage:
-        queryset = paginator.page(paginator.num_pages)
+        queryset = paginator.page(paginator.num_pages) 
     new_queryset = []
     for node in queryset.object_list:
         new_queryset.append(node)
-        new_queryset.extend(node.get_descendants())
+        for descendant in node.get_descendants():
+            # Hide entries with level higher or equal to 9
+            # and mark parents that they have hidden children  
+            if descendant.level >= 9:
+                if descendant.level == 9:
+                    new_queryset[-1].has_hidden_children = True
+                continue
+            new_queryset.append(descendant)
     queryset.object_list = new_queryset
+    # Adds context to an entry if it was upvoted or downvoted
     if request.user.is_authenticated:
         for entry in queryset:
             if entry.upvotes.filter(pk=request.user.id).exists():
@@ -126,35 +151,11 @@ def home(request, sorting="new"):
                 entry.style_class = "user-downvoted"
             elif entry.votes_sum == 0:
                 entry.style_class = "neutral"
-            elif entry.votes_sum > 0:
-                entry.style_class = "positive"
-            else:
-                entry.style_class = "negative"
-
     return render(request, "app/base.html", {"entries": queryset})
 
 
 def top(request):
     return home(request, "top")
 
-
 def hot(request):
     return home(request, "hot")
-
-
-def signup(request):
-    """
-    Default signup view
-    """
-    if request.method == "POST":
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get("username")
-            raw_password = form.cleaned_data.get("password1")
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
-            return redirect("home")
-    else:
-        form = SignUpForm()
-    return render(request, "registration/signup.html", {"form": form})

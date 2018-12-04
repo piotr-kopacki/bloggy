@@ -5,23 +5,28 @@ from django.dispatch import receiver
 import re
 
 @receiver(post_save, sender=Entry)
-def notify_reply_or_mentioned_user(sender, instance, created, **kwargs):
+def entry_notification(sender, instance, created, **kwargs):
     """
-    Signal to notify users when they are mentioned in an entry (only when it's created)
-    or when someone replied to it's entry.
+    Signal used to create notification(s) when an entry is created
+    This function notifies an user if this entry is a reply to him.
+    This function notifies an user if he's mentioned (by @username) in one's entry
+    This function notifies an user if a tag (which he observes) is used in one's entry
     """
     if created:
+        # First find usernames mentioned (by @ tag)
         p = re.compile(r'^@\w+$')
         usernames = set([p.match(c).group()[1:] for c in instance.content.split() if p.match(c)])
-        # Create user_replied notification if entry has parent
-        # and delete from usernames the parent user not to notify him
-        # with user_mentioned notify
+        # Remove the author of an entry from users to notify
+        if instance.user.username in usernames:
+            usernames.remove(instance.user.username)
+        # If entry has a parent and it's parent is not the same author then notify about a reply
+        # and delete from usernames if being notified
         if instance.parent and instance.parent.user.username != instance.user.username:
             if instance.parent.user.username in usernames:
                 usernames.remove(instance.parent.user.username)
             Notification.objects.create(type='user_replied',sender=instance.user, target=instance.parent.user, object=instance)
+        # Notify mentioned users without the author of an entry
         for name in usernames:
-            # Don't notify author of an entry to disable notifying itself
             if name == instance.user.username:
                 continue
             try:

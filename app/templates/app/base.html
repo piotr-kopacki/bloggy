@@ -406,6 +406,9 @@
                         <button type="submit" class="btn btn-secondary btn-sm">Add comment</button>
                     </div>
                 </form>
+                {% if node.has_hidden_children %}
+                <a style="margin-left: 15px; font-size: 12px; background-color: lightblue; color: white;" href="{% url 'entry-detail-view' node.pk %}">Continue into this discussion -></a>
+                {% endif %}
                 {% if not node.is_leaf_node %}
                 {% if node.is_root_node %}
                 <div style="margin-bottom: 12px;"></div>
@@ -413,7 +416,7 @@
                 <ul class="children entry" style="padding-left: 25px">
                     {{ children }}
                 </ul>
-                {% endif %}
+                {% endif %}         
             </li>
             {% if node.is_root_node %}
             <hr>
