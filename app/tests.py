@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .forms import UserCreationForm
-from .models import Entry, User, Notification
+from .models import Entry, User, Notification, Tag
 
 MARKDOWN_SAMPLE = """# hello, This is Markdown Live Preview
 ----
@@ -25,6 +25,8 @@ see [Wikipedia](http://en.wikipedia.org/wiki/Markdown)
 **strong**
 * list
 """
+
+
 class NotificationAPIViewTestCase(APITestCase):
     def test_disallow_read_false(self):
         u = User.objects.create(username="TestUser")
@@ -53,6 +55,7 @@ class NotificationAPIViewTestCase(APITestCase):
         url = reverse("notifications-list")
         response = self.client.get(url)
         self.assertEqual(len(response.data['results']), 0)
+
 
 class EntryAPIViewTestCase(APITestCase):
     def test_allow_get_only_when_deleted(self):
@@ -96,26 +99,6 @@ class EntryAPIViewTestCase(APITestCase):
         url = reverse("entry-detail", kwargs={'pk': 1})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-
-class EntryViewSetTestCase(TestCase):
-    def test_soft_deletion(self):
-        u = User.objects.create(username="TestUser")
-        e = Entry.objects.create(pk=1, user=u, content="test")
-        e2 = Entry.objects.create(pk=2, user=u, content="test2", parent=e)
-        e.delete()
-        self.assertIsNotNone(Entry.objects.get(pk=1))
-        self.assertIsNotNone(Entry.objects.get(pk=2))
-        self.assertTrue(e.deleted)
-
-    def test_hard_deletion(self):
-        u = User.objects.create(username="TestUser")
-        e = Entry.objects.create(pk=1, user=u, content="test")
-        e2 = Entry.objects.create(pk=2, user=u, content="test2", parent=e)
-        e2.delete()
-        e.delete()
-        self.assertRaises(Entry.DoesNotExist, Entry.objects.get, pk=1)
-        self.assertRaises(Entry.DoesNotExist, Entry.objects.get, pk=2)
 
 
 class VoteViewSetTestCase(APITestCase):
@@ -201,6 +184,57 @@ class VoteViewSetTestCase(APITestCase):
         data = {"pk": 0, "votetype": "upvote"}
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class TagTestCase(TestCase):
+    def setUp(self):
+        self.u  = User.objects.create(username="TestUser", email="testuser@testuser.testuser")
+        self.u2 = User.objects.create(username="TestUser2", email="testuse2r@testuser2.testuser2")
+        self.u3 = User.objects.create(username="TestUser3", email="testuser3@testuser3.testuser3")
+        self.t  = Tag.objects.create(name="testtag")
+        self.t2 = Tag.objects.create(name="testtag2")
+        self.t.observers.add(self.u)
+        self.t.observers.add(self.u2)
+        self.t2.observers.add(self.u3)
+        
+    def test_notification_creation(self):
+        Entry.objects.create(user=self.u, content="#testtag#this shouldn't create notifications")
+        self.assertFalse(Notification.objects.all().exists())
+        Entry.objects.create(user=self.u, content="#testtag this should create 1 notification")
+        self.assertEqual(Notification.objects.all().count(), 1)
+        Entry.objects.create(user=self.u2, content="#testtag this #should_ create 1 notification")
+        self.assertEqual(Notification.objects.all().count(), 2)
+        Entry.objects.create(user=self.u3, content="#testtag this should create 2 notifications")
+        self.assertEqual(Notification.objects.all().count(), 4)
+
+    def test_tag_creation(self):
+        Entry.objects.create(user=self.u, content="#testtagthree this should create 1 tag")
+        self.assertEqual(Tag.objects.all().count(), 3)
+        Entry.objects.create(user=self.u, content="#testTAGthree this shouldn't create a tag")
+        Entry.objects.create(user=self.u, content="#testtag#this shouldn't create a tag")
+        self.assertEqual(Tag.objects.all().count(), 3)
+        Entry.objects.create(user=self.u, content="#testtag #testtagfourth should create 1 tag")
+        self.assertEqual(Tag.objects.all().count(), 4)
+
+
+class EntryViewSetTestCase(TestCase):
+    def test_soft_deletion(self):
+        u = User.objects.create(username="TestUser")
+        e = Entry.objects.create(pk=1, user=u, content="test")
+        e2 = Entry.objects.create(pk=2, user=u, content="test2", parent=e)
+        e.delete()
+        self.assertIsNotNone(Entry.objects.get(pk=1))
+        self.assertIsNotNone(Entry.objects.get(pk=2))
+        self.assertTrue(e.deleted)
+
+    def test_hard_deletion(self):
+        u = User.objects.create(username="TestUser")
+        e = Entry.objects.create(pk=1, user=u, content="test")
+        e2 = Entry.objects.create(pk=2, user=u, content="test2", parent=e)
+        e2.delete()
+        e.delete()
+        self.assertRaises(Entry.DoesNotExist, Entry.objects.get, pk=1)
+        self.assertRaises(Entry.DoesNotExist, Entry.objects.get, pk=2)
 
 
 class UserEntryTestCase(TestCase):

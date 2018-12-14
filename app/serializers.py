@@ -1,6 +1,30 @@
 from rest_framework import serializers
 
-from .models import Entry, User, Notification
+from .models import Entry, User, Notification, Tag
+
+class TagSerializer(serializers.ModelSerializer):
+    observers = serializers.SerializerMethodField()
+    user_observes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Tag
+        read_only_fields = (
+            "author",
+            "name",
+        )
+        fields = (
+            "name",
+            "author",
+            "observers",
+            "user_observes",
+        )
+
+    def get_observers(self, obj):
+        return obj.observers.all().count()
+    
+    def get_user_observes(self, obj):
+        u = self.context.get("request").user
+        return obj.observers.filter(pk=u.pk).exists()
 
 class NotificationSerializer(serializers.ModelSerializer):
     sender = serializers.ReadOnlyField(source="sender.pk")
@@ -16,6 +40,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             "object",
             "target",
             "created_date",
+            "content",
         )
         fields = (
             "id",
@@ -25,6 +50,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             "target",
             "created_date",
             "read",
+            "content",
         )
     
     def validate_read(self, value):
@@ -52,6 +78,7 @@ class EntrySerializer(serializers.ModelSerializer):
             "user_upvoted",
             "user_downvoted",
             'deleted',
+            'tags',
         )
         fields = (
             "id",
@@ -65,6 +92,7 @@ class EntrySerializer(serializers.ModelSerializer):
             "user_upvoted",
             "user_downvoted",
             'deleted',
+            'tags',
         )
 
     def validate_parent(self, value):

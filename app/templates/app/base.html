@@ -157,7 +157,7 @@
                         content: $(this)[0][0].value,
                     },
                     success: function (data) {
-                        window.location.replace("/entry/" + data.id);
+                        window.location.replace("/entries/" + data.id);
                     },
                     error: function (err) {
                         console.log(err);
@@ -249,6 +249,70 @@
                 });
             })
         });
+        $(document).ready(function (){
+            $(".read-all").on('click', function (e) {
+                e.preventDefault();
+                $.ajaxSetup({
+                    beforeSend: function (xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+                $.ajax({
+                    url: "{% url 'notifications-read-all' %}",
+                    type: 'POST',
+                    success: function (data) {
+                        $("button#"+data.id+".readnotification.fas.fa-check").hide();
+                        $(".notification").each(function (index) {
+                            $(this).removeClass("notification-unread");
+                        })
+                        $(".full-notification.notification-unread").each(function(index) {
+                            $(this).removeClass("notification-unread");
+                        })
+                        $("readnotification").each(function (index){
+                            $(this).hide();
+                        })
+                        $(".fas.fa-envelope").attr("class", "fas fa-envelope-open");
+                        $("#notifications-unread-count").hide();
+                    },
+                    error: function () {
+                        console.log("error");
+                    }
+                });
+
+            });
+        });
+        $(document).ready(function (){
+            $(".observe-button").on('click', function (e) {
+                e.preventDefault();
+                $.ajaxSetup({
+                    beforeSend: function (xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                });
+                $.ajax({
+                    {% if browsed_tag.name %}
+                    url: "{% url 'tags-observe' browsed_tag.name %}",
+                    {% endif %}
+                    type: 'POST',
+                    success: function (data) {
+                        console.log(data);
+                        if(data.user_observes)
+                            $(".observe-button")[0].innerHTML = "Don't observe"
+                        else
+                            $(".observe-button")[0].innerHTML = "Observe"
+                        $(".tag-observers-count")[0].innerHTML = data.observers
+                    },
+                    error: function () {
+                        console.log("error");
+                    }
+                });
+
+            });
+        });
     </script>
     {% endblock %}
 </head>
@@ -308,6 +372,9 @@
                                             {% if notification.type == 'user_replied' %}
                                             <a href="{% url 'user-detail-view' notification.sender.pk %}">{{notification.sender.username }}</a> has replied to you <a href="{% url 'entry-detail-view' notification.object.pk %}">'{{notification.object.content|truncatechars:25 }}'</a>
                                             {% endif %}
+                                            {% if notification.type == 'tag_used' %}
+                                            {{ notification.content|safe }}
+                                            {% endif %}
                                             {{notification.created_date|naturaltime}}
                                         </li>
                                         {% if not notification.read %}
@@ -340,106 +407,14 @@
     </nav>
     {% endblock %}
     <div class="container content">
-        {% block content %}
-        <hr>
-        <p>
-            <a href="{% url 'home' %}">New</a>
-            <a href="{% url 'hot' %}">Hot</a>
-            <a href="{% url 'top' %}">Top</a>
-        </p>
-        <hr>
-        {% if user.is_authenticated %}
-        <form class="discussionForm">
-            <div class="form-group">
-                <textarea class="form-control" rows="3" maxlength="4000" required></textarea>
-                <button type="submit" class="btn btn-primary btn-sm">Add discussion</button>
-            </div>
-        </form>
-        {% else %}
-        <h4><a href="{% url 'account_login' %}">Log-in</a> or <a href="{% url 'account_signup' %}">Register</a> to add
-            a discussion!</h4>
-        {% endif %}
-        <hr>
-        {% load mptt_tags %}
-        <ul class="entry" style="padding-left: 10px;">
-            {% if not entries %}
-            <h1>Oops. There are no discussions to show.</h1>
-            {% endif %}
-            {% recursetree entries %}
-            {% if node.user.pk == user.pk %}
-            <li class="usernode">
-                {% elif node.is_root_node %}
-            <li>
-                {% else %}
-            <li style="border-left: 1px solid rgba(0, 0, 0, 0.1);">
-                {% endif %}
-                <a class="anchor" id="{{ node.pk }}"></a>
-                <p style="margin-bottom: 1px">
-                    <a href="{% url 'user-detail-view' node.user.pk %}" style="margin-left: 5px; font-size: 14px;"><strong>{{node.user.username }}</strong></a>
-                    <em><a href="{% url 'entry-detail-view' node.pk %}" style="font-size: 12px;">{{node.created_date|naturaltime }}</a></em>
-                    <strong class="node" id="votes{{node.pk}}">{{ node.votes_sum }}</strong>
-                    {% if user.is_authenticated %}
-                    <button class="upvote {{ node.style_class }}" type="upvote" onclick="vote({{node.pk}}, 'upvote')"
-                        id="upvote{{node.pk}}">&#43;</button>
-                    <button class="downvote {{ node.style_class }}" type="downvote" onclick="vote({{node.pk}}, 'downvote')"
-                        id="downvote{{node.pk}}">&#8722;</button>
-                    <a href="#" class="answerButton" value="{{node.pk}}" style="font-size: 12px">answer</a>
-                    {% if node.user.pk == user.pk and not node.deleted %}
-                    <a href="#" class="editButton" value="{{node.pk}}" style="font-size: 12px">edit</a>
-                    <a href="#" class="deleteButton" value="{{node.pk}}" style="font-size: 12px; color: red;">delete</a>
-                    {% endif %}
-                    {% endif %}
-                </p>
-                {% if not node.deleted %}
-                <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px; word-wrap: break-word;">{{node.content_formatted|safe }}</div>
-                <form class="editForm" id="editForm{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}"
-                    maxlength="4000">
-                    <textarea class="form-control" rows="3" required>{{ node.content|safe }}</textarea>
-                    <button type="submit" class="btn btn-secondary btn-sm">Edit</button>
-                </form>
-                {% else %}
-                <div id="content{{node.pk}}" class="content" value="{{node.pk}}" style="margin-left: 5px; word-wrap: break-word; margin-bottom: 10px;"><em>deleted</em></div>
-                {% endif %}
-                <form class="commentForm" id="form{{node.pk}}" style="margin-left: 10px; display:none;" value="{{node.pk}}">
-                    <div class="form-group">
-                        <textarea class="form-control" rows="3" required></textarea>
-                        <button type="submit" class="btn btn-secondary btn-sm">Add comment</button>
-                    </div>
-                </form>
-                {% if node.has_hidden_children %}
-                <a style="margin-left: 15px; font-size: 12px; background-color: lightblue; color: white;" href="{% url 'entry-detail-view' node.pk %}">Continue into this discussion -></a>
-                {% endif %}
-                {% if not node.is_leaf_node %}
-                {% if node.is_root_node %}
-                <div style="margin-bottom: 12px;"></div>
-                {% endif %}
-                <ul class="children entry" style="padding-left: 25px">
-                    {{ children }}
-                </ul>
-                {% endif %}         
-            </li>
-            {% if node.is_root_node %}
-            <hr>
-            {% endif %}
-            {% endrecursetree %}
-        </ul>
-        <div class="pagination">
-            <span class="step-links">
-                {% if entries.has_previous %}
-                <a href="?page=1">&laquo; first</a>
-                <a href="?page={{ entries.previous_page_number }}">previous</a>
-                {% endif %}
+        {% block content-head %}
 
-                <span class="current">
-                    Page {{ entries.number }} of {{ entries.paginator.num_pages }}.
-                </span>
-
-                {% if entries.has_next %}
-                <a href="?page={{ entries.next_page_number }}">next</a>
-                <a href="?page={{ entries.paginator.num_pages }}">last &raquo;</a>
-                {% endif %}
-            </span>
-        </div>
+        {% endblock %}
+        {% block content-body %}
+        
+        {% endblock %}
+        {% block content-tail %}
+        
         {% endblock %}
     </div>
     {% block footer %}

@@ -1,13 +1,15 @@
 from django.urls import path
 
-from .views import EntryDetailView, UserDetailView, UserRankingView, NotificationListView, home, hot, top
+from .views import EntryDetailView, UserDetailView, UserRankingView, NotificationListView, HomeView
 
 urlpatterns = [
-    path("", home, name="home"),
-    path("top/", top, name="top"),
-    path("hot/", hot, name="hot"),
+    path("", HomeView, name="home"),
+    path("top/", HomeView, {'sorting': 'top'}, name="top"),
+    path("hot/", HomeView, {'sorting': 'hot'}, name="hot"),
+    path("entries/tag/<str:tag>/", HomeView, name="tag"),
     path("ranking/", UserRankingView.as_view(), name="ranking"),
-    path("entry/<int:pk>", EntryDetailView.as_view(), name="entry-detail-view"),
+    path("entries/<int:pk>/", EntryDetailView.as_view(), name="entry-detail-view"),
     path("notifications/", NotificationListView.as_view(), name="notifications-all"),
-    path("users/<int:pk>", UserDetailView.as_view(), name="user-detail-view"),
+    path("users/<int:pk>/", UserDetailView.as_view(), name="user-detail-view"),
+    path("users/<str:username>/", UserDetailView.as_view(), name="user-detail-view"),
 ]

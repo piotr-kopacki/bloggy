@@ -1,8 +1,10 @@
 {% extends 'app/base.html' %}
 {% load humanize %}
-{% block content %}
+{% block content-body %}
 <br>
 <p class="text-muted text-center">Notifications</p>
+<hr>
+<a href="#" class="read-all btn {% if notifications.unread_count > 0 %}active{% else %}disabled{% endif %}">Mark all as read</a>
 <hr style="margin-bottom: 0px;">
 {% for notification in notifications_paginated %}
 <div class="full-notification {% if not notification.read %}notification-unread{% endif %}" id="{{notification.id}}">
@@ -16,6 +18,9 @@
         to you <a href="{% url 'entry-detail-view' notification.object.pk %}">'{{notification.object.content|truncatechars:25}}'</a>
         {% endif %}
         {{notification.created_date|naturaltime}}
+        {% if notification.type == 'tag_used' %}
+        {{ notification.content|safe }}
+        {% endif %}
         {% if not notification.read %}
         <button class="readnotification fas fa-check" id="{{notification.id}}"></button>
         {% endif %}

@@ -1,16 +1,47 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Entry, Notification
+from .models import Entry, Notification, Tag
 from .permissions import DisallowVoteChanges, IsOwnerOrReadOnly, DeletedReadOnly, IsTarget
-from .serializers import EntrySerializer, NotificationSerializer
+from .serializers import EntrySerializer, NotificationSerializer, TagSerializer
+
+class TagViewSet(viewsets.ModelViewSet):
+    serializer_class = TagSerializer
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=True, methods=['post'])
+    def observe(self, request, pk=None):
+        tag = self.get_object()
+        if tag.observers.filter(username=self.request.user.username):
+            tag.observers.remove(self.request.user)
+        else:
+            tag.observers.add(self.request.user)
+        serializer = self.serializer_class(tag, context={'request': request})
+        return Response(serializer.data)
+    
+    def get_queryset(self):
+        return Tag.objects.all()
+
 
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     permission_classes = [IsTarget, IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def read_all(self, request):
+        user_notifications = Notification.objects.filter(target=self.request.user)
+        user_notifications.update(read=True)
+        page = self.paginate_queryset(user_notifications)
+        if page:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(user_notifications, many=True)
+        return Response(serializer.data)
 
     def get_queryset(self):
         return Notification.objects.filter(target=self.request.user)
@@ -30,8 +61,11 @@ class EntryViewSet(viewsets.ModelViewSet):
             if entry.deleted:
                 entry.content = "deleted"
                 entry.content_formatted = "<em>deleted<em>"
-        context = {'request': request}
-        serializer = self.serializer_class(queryset, many=True, context=context)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_class(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):

@@ -1,5 +1,6 @@
 {% extends 'app/base.html' %}
-{% block content %}
+
+{% block content-body %}
 <br>
 <form method="POST" action="{% url 'account_login' %}">
     {% csrf_token %}
