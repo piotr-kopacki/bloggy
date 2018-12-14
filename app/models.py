@@ -128,30 +128,10 @@ class Entry(MPTTModel):
         # Turn 'h1' (#) tag into a hyperlink to a tag
         self.content_formatted = self.content
         p = re.compile(r"(\W|^)(#)([a-zA-Z]+\b)(?![a-zA-Z_#])")
-        for matched in [
-            p.match(t) for t in self.content.split() if p.match(t)
-        ]:
-            tag_name = matched.group(3).lower()
-            self.content_formatted = re.sub(
-                matched.group(),
-                "<a href={}>#{}</a>".format(
-                    reverse("tag", kwargs={"tag": tag_name}), tag_name
-                ),
-                self.content_formatted,
-            )
+        self.content_formatted = re.sub(p, r'\1<a href="/entries/tag/\3">#\3</a>', self.content_formatted)
         # Format @user tag into a hyperlink
-        p = re.compile(r"^(\W|^)(@)([a-zA-Z]+\b)(?![a-zA-Z_#])")
-        for matched in [
-            p.match(t) for t in self.content.split() if p.match(t)
-        ]:
-            username = matched.group(3).lower()
-            self.content_formatted = re.sub(
-                matched.group(),
-                "<a href={}>@{}</a>".format(
-                    reverse("user-detail-view", kwargs={"username": username}), username
-                ),
-                self.content_formatted,
-            )
+        p = re.compile(r"(\W|^)(@)([a-zA-Z]+\b)(?![a-zA-Z_#])")
+        self.content_formatted = re.sub(p, r'\1<a href="/users/\3">@\3</a>', self.content_formatted)
         # Clean and format content
         self.content_formatted = bleach.clean(
             markdown.markdown(self.content_formatted, extensions=["extra"]),
