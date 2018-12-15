@@ -41,9 +41,13 @@ class Tag(models.Model):
     ::author - tag may have an author who can moderate the tag
     """
 
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     name = models.TextField(max_length=255, primary_key=True)
-    observers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="observers", blank=True)
+    observers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="observers", blank=True
+    )
 
     def __str__(self):
         return "#" + self.name
@@ -125,13 +129,23 @@ class Entry(MPTTModel):
         return f'"{self.content:.20}..."'
 
     def format_content(self):
-        # Turn 'h1' (#) tag into a hyperlink to a tag
+        # Convert 'h1' (#) tag into a hyperlink to a tag
         self.content_formatted = self.content
         p = re.compile(r"(\W|^)(#)([a-zA-Z]+\b)(?![a-zA-Z_#])")
-        self.content_formatted = re.sub(p, r'\1<a href="/entries/tag/\3">#\3</a>', self.content_formatted)
-        # Format @user tag into a hyperlink
+        self.content_formatted = re.sub(
+            p,
+            lambda m: '{}<a href="{}">#{}</a>'.format(
+                m.group(1),
+                reverse("tag", kwargs={"tag": m.group(3).lower()}),
+                m.group(3).lower(),
+            ),
+            self.content_formatted,
+        )
+        # Convert @user tag into a hyperlink to a profile
         p = re.compile(r"(\W|^)(@)([a-zA-Z]+\b)(?![a-zA-Z_#])")
-        self.content_formatted = re.sub(p, r'\1<a href="/users/\3">@\3</a>', self.content_formatted)
+        self.content_formatted = re.sub(
+            p, r'\1<a href="/users/\3">@\3</a>', self.content_formatted
+        )
         # Clean and format content
         self.content_formatted = bleach.clean(
             markdown.markdown(self.content_formatted, extensions=["extra"]),
@@ -141,7 +155,6 @@ class Entry(MPTTModel):
         self.content = bleach.clean(
             self.content, settings.MARKDOWN_TAGS, settings.MARKDOWN_ATTRS
         )
-
 
     def save(self, *args, **kwargs):
         """
@@ -185,9 +198,7 @@ class Entry(MPTTModel):
                     reversed_entry = reverse(
                         "entry-detail-view", kwargs={"pk": self.pk}
                     )
-                    reversed_tag = reverse(
-                        "tag", kwargs={"tag": tag.name}
-                    )
+                    reversed_tag = reverse("tag", kwargs={"tag": tag.name})
                     content = (
                         f'<a href="{reversed_user}">{self.user.username}</a> used tag <a href="{reversed_tag}">#{tag.name}</a>'
                         f' in <a href="{reversed_entry}">"{self.content_formatted:.25}..."</a>'

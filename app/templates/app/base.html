@@ -78,8 +78,9 @@
                 $.ajax({
                     url: "{% url 'entry-list' %}" + $(this).attr('value') + "/",
                     type: 'DELETE',
-                    success: function () { // this happens after we get results
-                        location.reload();
+                    success: function (data) {
+                        console.log(data);
+                        window.location.replace("{% url 'home' %}");
                     },
                     error: function () {
                         console.log("error");
