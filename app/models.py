@@ -169,11 +169,7 @@ class Entry(MPTTModel):
         super().save(*args, **kwargs)
         # Clear tags so if user deletes a tag from content it won't appear.
         self.tags.clear()
-        p = re.compile(r"(\W|^)(#)([a-zA-Z]+\b)(?![a-zA-Z_#])")
-        for tag_name in set(
-            p.match(t).group(3) for t in self.content.split() if p.match(t)
-        ):
-            tag_name = tag_name.lower()
+        for tag_name in self.get_tags:
             try:
                 tag = Tag.objects.get(name=tag_name)
             except:
@@ -240,9 +236,18 @@ class Entry(MPTTModel):
     @property
     def has_children(self):
         """
-        True if entry has children nodes
+        Returns True if entry has children nodes
         """
         return self.get_children().exists()
+
+    @property
+    def get_tags(self):
+        """
+        Returns list of tag names in content of entry
+        """
+        p = r"(\W|^)(#)([a-zA-Z]+\b)(?![a-zA-Z_#])"
+        return list(set([f[2].lower() for f in re.findall(p, self.content)]))
+
 
     def parent_formatted(self):
         """

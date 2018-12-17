@@ -15,7 +15,6 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from mptt.utils import get_cached_trees
 
-from .forms import SignUpForm
 from .models import Entry, User, Notification, Tag
 
 import re

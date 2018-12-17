@@ -6,7 +6,6 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .forms import UserCreationForm
 from .models import Entry, User, Notification, Tag
 
 MARKDOWN_SAMPLE = """# hello, This is Markdown Live Preview

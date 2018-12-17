@@ -14,7 +14,7 @@
         </div>
         <div class="form-group">
             <label for="emailInput">Email</label>
-            <input type="text" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="emailInput" aria-describedby="emailHelp"
+            <input type="email" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="emailInput" aria-describedby="emailHelp"
                 placeholder="E-mail" required>
             {% for error in form.email.errors %}
             <div class="invalid-feedback">{{ error }}</div>
