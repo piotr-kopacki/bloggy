@@ -19,22 +19,23 @@ from .models import Entry, User, Notification, Tag
 
 import re
 
+
 class NotificationListView(LoginRequiredMixin, ListView):
     model = Notification
     paginate_by = 25
     template_name = "app/notifications.html"
-    login_url = reverse_lazy('account_login')
+    login_url = reverse_lazy("account_login")
     context_object_name = "notifications_paginated"
 
     def get_queryset(self):
         return Notification.objects.filter(target=self.request.user)
 
 
-
 class UserRankingView(ListView):
     """
     Simple ranking view
     """
+
     model = User
     paginate_by = 10
     template_name = "app/ranking.html"
@@ -51,6 +52,7 @@ class EntryDetailView(DetailView):
     - Child entries (if exist)
     as 'entries'
     """
+
     model = Entry
 
     def get_context_data(self, **kwargs):
@@ -78,7 +80,7 @@ class UserDetailView(DetailView):
             queryset = self.get_queryset()
 
         # Next, try looking up by primary key.
-        username = self.kwargs.get('username')
+        username = self.kwargs.get("username")
         if not username:
             return super().get_object(queryset)
         queryset = queryset.filter(username=username)
@@ -86,8 +88,10 @@ class UserDetailView(DetailView):
             # Get the single item from the filtered queryset
             obj = queryset.get()
         except queryset.model.DoesNotExist:
-            raise Http404(_("No %(verbose_name)s found matching the query") %
-                          {'verbose_name': queryset.model._meta.verbose_name})
+            raise Http404(
+                _("No %(verbose_name)s found matching the query")
+                % {"verbose_name": queryset.model._meta.verbose_name}
+            )
         return obj
 
     def get_context_data(self, **kwargs):
@@ -123,19 +127,18 @@ def HomeView(request, sorting=None, tag=None):
     root_nodes = Entry.objects.root_nodes()
     tag_object = None
     if tag:
-        if re.search(r'^([a-zA-Z]+)$', tag):
+        if re.search(r"^([a-zA-Z]+)$", tag):
             tag = tag.lower()
             try:
                 tag_object = Tag.objects.get(name=tag)
             except:
-                tag_object = Tag.objects.create(name=tag) 
+                tag_object = Tag.objects.create(name=tag)
             root_nodes = root_nodes.filter(tags__name=tag_object.name)
     # If entries are sorted by hotness, filter entries from last 6 hours
     # Also annotate 'hotness' by a simple formula (count of upvotes + count of downvotes + 0,5 * count of children)
     if sorting == "hot":
         root_nodes = (
-            root_nodes
-            .filter(created_date__gte=timezone.now() - timedelta(hours=6))
+            root_nodes.filter(created_date__gte=timezone.now() - timedelta(hours=6))
             .annotate(
                 hotness=(
                     (Count("upvotes") + Count("downvotes")) * 0.5 + Count("children")
@@ -144,12 +147,10 @@ def HomeView(request, sorting=None, tag=None):
             .order_by("-hotness")
         )
     # Top sorting sorts descending by subtracting root's downvotes from upvotes
-    elif sorting == "top":  
-        root_nodes = (
-            root_nodes
-            .annotate(overall_votes=(Count("upvotes") - Count("downvotes")))
-            .order_by("-overall_votes")
-        )
+    elif sorting == "top":
+        root_nodes = root_nodes.annotate(
+            overall_votes=(Count("upvotes") - Count("downvotes"))
+        ).order_by("-overall_votes")
     # To make pagination possible we need to paginate root nodes only.
     # Then we need to replace default object_list in the paginator queryset
     # with a new quryset with rebuilt trees
@@ -161,18 +162,20 @@ def HomeView(request, sorting=None, tag=None):
     except PageNotAnInteger:
         queryset = paginator.page(1)
     except EmptyPage:
-        queryset = paginator.page(paginator.num_pages) 
+        queryset = paginator.page(paginator.num_pages)
     new_queryset = []
     for node in queryset.object_list:
         new_queryset.append(node)
         for descendant in node.get_descendants():
             # Hide entries with level higher or equal to 9
-            # and mark parents that they have hidden children  
+            # and mark parents that they have hidden children
             if descendant.level >= 9:
                 if descendant.level == 9:
                     new_queryset[-1].has_hidden_children = True
                 continue
             new_queryset.append(descendant)
     queryset.object_list = new_queryset
-    return render(request, "app/home.html", {"entries": queryset, "browsed_tag": tag_object})
+    return render(
+        request, "app/home.html", {"entries": queryset, "browsed_tag": tag_object}
+    )
 

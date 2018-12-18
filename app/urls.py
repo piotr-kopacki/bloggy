@@ -10,6 +10,6 @@ urlpatterns = [
     path("ranking/", UserRankingView.as_view(), name="ranking"),
     path("entries/<int:pk>/", EntryDetailView.as_view(), name="entry-detail-view"),
     path("notifications/", NotificationListView.as_view(), name="notifications-all"),
-    path("users/<int:pk>/", UserDetailView.as_view(), name="user-detail-view"),
+    # path("users/<int:pk>/", UserDetailView.as_view(), name="user-detail-view"),
     path("users/<str:username>/", UserDetailView.as_view(), name="user-detail-view"),
 ]

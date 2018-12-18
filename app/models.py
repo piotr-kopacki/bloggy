@@ -142,7 +142,7 @@ class Entry(MPTTModel):
             self.content_formatted,
         )
         # Convert @user tag into a hyperlink to a profile
-        p = re.compile(r"(\W|^)(@)([a-zA-Z]+\b)(?![a-zA-Z_#])")
+        p = re.compile(r"(\W|^)(@)([a-zA-Z0-9]+\b)(?![a-zA-Z0-9_#])")
         self.content_formatted = re.sub(
             p, r'\1<a href="/users/\3">@\3</a>', self.content_formatted
         )
@@ -189,7 +189,7 @@ class Entry(MPTTModel):
                     if observer.username == self.user.username:
                         continue
                     reversed_user = reverse(
-                        "user-detail-view", kwargs={"pk": self.user.pk}
+                        "user-detail-view", kwargs={"username": self.user.username}
                     )
                     reversed_entry = reverse(
                         "entry-detail-view", kwargs={"pk": self.pk}
