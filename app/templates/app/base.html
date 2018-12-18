@@ -399,7 +399,7 @@
                     {{ user.username }}
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
-                    <a class="dropdown-item" href="{% url 'user-detail-view' user.pk %}">Profile</a>
+                    <a class="dropdown-item" href="{% url 'user-detail-view' user.username %}">Profile</a>
                     <a class="dropdown-item" href="{% url 'account_logout' %}">Logout</a>
                 </div>
             </div>

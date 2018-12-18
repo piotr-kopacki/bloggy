@@ -10,11 +10,11 @@
 <div class="full-notification {% if not notification.read %}notification-unread{% endif %}" id="{{notification.id}}">
     <li>
         {% if notification.type == 'user_mentioned' %}
-        <a href="{% url 'user-detail-view' notification.sender.pk %}">{{notification.sender.username }}</a> has
+        <a href="{% url 'user-detail-view' notification.sender.username %}">{{notification.sender.username }}</a> has
         mentioned you in his entry <a href="{% url 'entry-detail-view' notification.object.pk %}">'{{notification.object.content|truncatechars:25}}'</a>
         {% endif %}
         {% if notification.type == 'user_replied' %}
-        <a href="{% url 'user-detail-view' notification.sender.pk %}">{{notification.sender.username }}</a> has replied
+        <a href="{% url 'user-detail-view' notification.sender.username %}">{{notification.sender.username }}</a> has replied
         to you <a href="{% url 'entry-detail-view' notification.object.pk %}">'{{notification.object.content|truncatechars:25}}'</a>
         {% endif %}
         {{notification.created_date|naturaltime}}
