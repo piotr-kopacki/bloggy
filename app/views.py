@@ -69,6 +69,7 @@ class EntryDetailView(DetailView):
 
 class UserDetailView(DetailView):
     model = User
+    context_object_name = "user_profile"
 
     def get_object(self, queryset=None):
         """
@@ -113,7 +114,6 @@ class UserDetailView(DetailView):
             for node in list(entry.get_family()):
                 last_discussions.append(node)
         context["entries"] = last_discussions
-        context["user"].entries_count = user_entries.count()
         return context
 
 
