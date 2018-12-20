@@ -201,3 +201,8 @@ body > * {
   border-style: none;
   background-color: transparent;
 }
+
+.blacklist-button {
+  background-color: black;
+  color: white;
+}

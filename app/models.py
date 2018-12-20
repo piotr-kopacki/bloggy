@@ -37,8 +37,10 @@ class Tag(models.Model):
     """
     Generic tag class
 
-    ::name   - name of the tag (primary key)
-    ::author - tag may have an author who can moderate the tag
+    ::name         - name of the tag (primary key)
+    ::author       - tag may have an author who can moderate the tag
+    ::observers    - list of users who observe the tag
+    ::blacklisters - list of users who blacklisted the tag
     """
 
     author = models.ForeignKey(
@@ -48,6 +50,10 @@ class Tag(models.Model):
     observers = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="observers", blank=True
     )
+    blacklisters = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="blacklisters", blank=True
+    )
+
 
     def __str__(self):
         return "#" + self.name

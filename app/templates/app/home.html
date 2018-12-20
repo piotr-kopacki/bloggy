@@ -22,17 +22,20 @@
     {% endif %}
     <hr>
     {% if browsed_tag %}
-    <h4>You're browsing <a href="{% url 'tag' browsed_tag.name %}">#{{ browsed_tag.name }}</a> tag with <i class="tag-observers-count">{{ browsed_tag.observers.all.count }}</i> observers</h4>
-    {% if user.is_authenticated %}
-    <button type="button" class="observe-button btn btn-secondary">
-    {% if user in browsed_tag.observers.all %}
-    Don't observe
-    {% else %}
-    Observe
-    {% endif %}
-    </button>
-    {% endif %}
-    <hr>
+        <h4>You're browsing <a href="{% url 'tag' browsed_tag.name %}">#{{ browsed_tag.name }}</a> tag with <i class="tag-observers-count">{{ browsed_tag.observers.all.count }}</i> observers</h4>
+        {% if user.is_authenticated %}
+            {% if user in browsed_tag.blacklisters.all %}
+            <button type="button" class="observe-button btn btn-secondary" style="display: none;">Observe</button>
+            <button type="button" class="blacklist-button btn btn-secondary">Don't blacklist</button>
+            {% elif user in browsed_tag.observers.all %}
+            <button type="button" class="observe-button btn btn-secondary">Don't observe</button>
+            <button type="button" class="blacklist-button btn btn-secondary" style="display: none;">Blacklist</button>
+            {% else %}
+            <button type="button" class="observe-button btn btn-secondary">Observe</button>
+            <button type="button" class="blacklist-button btn btn-secondary">Blacklist</button>
+            {% endif %}
+        {% endif %}
+        <hr>
     {% endif %}
 {% endblock %}
 

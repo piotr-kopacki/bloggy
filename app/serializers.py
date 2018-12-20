@@ -5,6 +5,7 @@ from .models import Entry, User, Notification, Tag
 class TagSerializer(serializers.ModelSerializer):
     observers = serializers.SerializerMethodField()
     user_observes = serializers.SerializerMethodField()
+    user_blacklisted = serializers.SerializerMethodField()
 
     class Meta:
         model = Tag
@@ -17,6 +18,7 @@ class TagSerializer(serializers.ModelSerializer):
             "author",
             "observers",
             "user_observes",
+            "user_blacklisted",
         )
 
     def get_observers(self, obj):
@@ -25,6 +27,10 @@ class TagSerializer(serializers.ModelSerializer):
     def get_user_observes(self, obj):
         u = self.context.get("request").user
         return obj.observers.filter(pk=u.pk).exists()
+
+    def get_user_blacklisted(self, obj):
+        u = self.context.get("request").user
+        return obj.blacklisters.filter(pk=u.pk).exists()
 
 class NotificationSerializer(serializers.ModelSerializer):
     sender = serializers.ReadOnlyField(source="sender.pk")

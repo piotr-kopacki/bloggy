@@ -14,11 +14,29 @@ class TagViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     @action(detail=True, methods=['post'])
+    def blacklist(self, request, pk=None):
+        tag = self.get_object()
+        if tag.blacklisters.filter(username=self.request.user.username):
+            tag.blacklisters.remove(self.request.user)
+        else:
+            # If user is observing a tag and blacklists it
+            # then delete user from observers
+            if tag.observers.filter(username=self.request.user.username):
+                tag.observers.remove(self.request.user)
+            tag.blacklisters.add(self.request.user)
+        serializer = self.serializer_class(tag, context={'request': request})
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
     def observe(self, request, pk=None):
         tag = self.get_object()
         if tag.observers.filter(username=self.request.user.username):
             tag.observers.remove(self.request.user)
         else:
+            # If user blacklisted a tag and starts observing it
+            # then delete user from blacklisters
+            if tag.blacklisters.filter(username=self.request.user.username):
+                tag.blacklisters.remove(self.request.user)
             tag.observers.add(self.request.user)
         serializer = self.serializer_class(tag, context={'request': request})
         return Response(serializer.data)

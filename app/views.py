@@ -151,6 +151,20 @@ def HomeView(request, sorting=None, tag=None):
         root_nodes = root_nodes.annotate(
             overall_votes=(Count("upvotes") - Count("downvotes"))
         ).order_by("-overall_votes")
+    # Filter root nodes by blacklisted tags
+    if not tag and request.user.is_authenticated:
+        root_nodes = list(
+            filter(
+                lambda n: not any(
+                    [
+                        True
+                        for tag_name in n.get_tags
+                        if request.user in Tag.objects.get(name=tag_name).blacklisters.all() and not request.user == n.user
+                    ]
+                ),
+                root_nodes,
+            )
+        )
     # To make pagination possible we need to paginate root nodes only.
     # Then we need to replace default object_list in the paginator queryset
     # with a new quryset with rebuilt trees
