@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -151,7 +151,7 @@ def HomeView(request, sorting=None, tag=None):
         ).order_by("-overall_votes")
     # Filter root nodes by blacklisted tags
     if not tag and request.user.is_authenticated:
-        root_nodes = root_nodes.exclude(tags__blacklisters=request.user)
+        root_nodes = root_nodes.exclude(Q(tags__blacklisters=request.user) & ~Q(user=request.user))
     # To make pagination possible we need to paginate root nodes only.
     # Then we need to replace default object_list in the paginator queryset
     # with a new quryset with rebuilt trees
