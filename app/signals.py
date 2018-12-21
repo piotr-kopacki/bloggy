@@ -35,9 +35,11 @@ def entry_notification(sender, instance, created, **kwargs):
                 continue
             Notification.objects.create(type='user_mentioned', sender=instance.user, target=target, object=instance)
 
+
 @receiver(m2m_changed, sender=Entry.tags.through)
-def entry_tag_notification(sender, instance, **kwargs):
-    if not instance.modified_date:
+def entry_tag_notification(sender, instance, pk_set, action, **kwargs):
+    if not instance.modified_date and "post" in action:
+        already_notified = set()
         reversed_user = reverse(
                 "user-detail-view", kwargs={"username": instance.user.username}
             )
@@ -46,7 +48,7 @@ def entry_tag_notification(sender, instance, **kwargs):
         )
         for tag in instance.tags.all():
             for observer in tag.observers.all():
-                if observer.username == instance.user.username:
+                if observer.username == instance.user.username or observer in already_notified:
                     continue
                 reversed_tag = reverse("tag", kwargs={"tag": tag.name})
                 content = (
@@ -60,3 +62,4 @@ def entry_tag_notification(sender, instance, **kwargs):
                     object=instance,
                     content=content,
                 )
+                already_notified.add(observer)

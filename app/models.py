@@ -134,7 +134,7 @@ class Entry(MPTTModel):
     created_date = models.DateTimeField(default=timezone.now)
     modified_date = models.DateTimeField(blank=True, null=True)
     deleted = models.BooleanField(default=False)
-    tags = models.ManyToManyField(Tag, blank=True)
+    tags = models.ManyToManyField(Tag)
 
     class MPTTMeta:
         order_insertion_by = ["-created_date"]
@@ -195,9 +195,8 @@ class Entry(MPTTModel):
         super().save(*args, **kwargs)
         # Clear tags so if user deletes a tag from content it won't appear.
         self.tags.clear()
-        for tag_name in self.get_tags:
-            tag, _ = Tag.objects.get_or_create(name=tag_name)
-            self.tags.add(tag)
+        tags_to_add = [Tag.objects.get_or_create(name=tag_name)[0] for tag_name in self.get_tags]
+        self.tags.add(*tags_to_add)
 
     def delete(self, *args, **kwargs):
         """

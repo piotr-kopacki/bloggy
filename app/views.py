@@ -18,6 +18,7 @@ from mptt.utils import get_cached_trees
 from .models import Entry, User, Notification, Tag
 
 import re
+import time
 
 
 class NotificationListView(LoginRequiredMixin, ListView):
@@ -150,18 +151,7 @@ def HomeView(request, sorting=None, tag=None):
         ).order_by("-overall_votes")
     # Filter root nodes by blacklisted tags
     if not tag and request.user.is_authenticated:
-        root_nodes = list(
-            filter(
-                lambda n: not any(
-                    [
-                        True
-                        for tag_name in n.get_tags
-                        if request.user in Tag.objects.get(name=tag_name).blacklisters.all() and not request.user == n.user
-                    ]
-                ),
-                root_nodes,
-            )
-        )
+        root_nodes = root_nodes.exclude(tags__blacklisters=request.user)
     # To make pagination possible we need to paginate root nodes only.
     # Then we need to replace default object_list in the paginator queryset
     # with a new quryset with rebuilt trees
