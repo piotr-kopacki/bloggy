@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.html import format_html
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -31,6 +32,11 @@ class User(AbstractUser):
         return user_entries.count() + sum(
             [entry.upvotes.count() for entry in user_entries]
         )
+
+    @cached_property
+    def notifications_unread_count(self):
+        return Notification.objects.filter(target=self).filter(read=False).count()
+
 
 
 class Tag(models.Model):

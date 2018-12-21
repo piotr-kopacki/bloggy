@@ -387,8 +387,8 @@
             <div class="dropdown show" style="margin-right: 15px;">
                 <a style="color: white;" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false">
-                    {% if notifications.unread_count > 0 %}
-                    <i class="fas fa-envelope"><span class="badge badge-pill badge-primary" id="notifications-unread-count">{{ notifications.unread_count }}</span></i>
+                    {% if user.notifications_unread_count > 0 %}
+                    <i class="fas fa-envelope"><span class="badge badge-pill badge-primary" id="notifications-unread-count">{{ user.notifications_unread_count }}</span></i>
                     {% else %}
                     <i class="fas fa-envelope-open"></i>
                     {% endif %}
