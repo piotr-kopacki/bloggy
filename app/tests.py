@@ -261,11 +261,10 @@ class UserEntryTestCase(TestCase):
         """
         Test if user's points are properly calculated
         """
-        u = User.objects.get(pk=1)
-        self.assertEqual(u.points, 1)
-        e = Entry.objects.create(pk=2, user=u)
-        self.assertEqual(u.points, 2)
-        e.upvotes.add(u)
-        self.assertEqual(u.points, 3)
-        Entry.objects.filter(user=u).delete()
-        self.assertEqual(u.points, 0)
+        self.assertEqual(User.objects.get(pk=1).points, 1)
+        e = Entry.objects.create(pk=2, user=User.objects.get(pk=1))
+        self.assertEqual(User.objects.get(pk=1).points, 2)
+        e.upvotes.add(User.objects.get(pk=1))
+        self.assertEqual(User.objects.get(pk=1).points, 3)
+        Entry.objects.filter(user=User.objects.get(pk=1)).delete()
+        self.assertEqual(User.objects.get(pk=1).points, 0)
