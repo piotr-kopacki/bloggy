@@ -1,5 +1,5 @@
 from .models import User, Entry, Notification, Tag
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from django.urls import reverse
 
@@ -34,3 +34,29 @@ def entry_notification(sender, instance, created, **kwargs):
             except:
                 continue
             Notification.objects.create(type='user_mentioned', sender=instance.user, target=target, object=instance)
+
+@receiver(m2m_changed, sender=Entry.tags.through)
+def entry_tag_notification(sender, instance, **kwargs):
+    if not instance.modified_date:
+        reversed_user = reverse(
+                "user-detail-view", kwargs={"username": instance.user.username}
+            )
+        reversed_entry = reverse(
+            "entry-detail-view", kwargs={"pk": instance.pk}
+        )
+        for tag in instance.tags.all():
+            for observer in tag.observers.all():
+                if observer.username == instance.user.username:
+                    continue
+                reversed_tag = reverse("tag", kwargs={"tag": tag.name})
+                content = (
+                    f'<a href="{reversed_user}">{instance.user.username}</a> used tag <a href="{reversed_tag}">#{tag.name}</a>'
+                    f' in <a href="{reversed_entry}">"{instance.content:.25}..."</a>'
+                )
+                n = Notification.objects.create(
+                    type="tag_used",
+                    sender=instance.user,
+                    target=observer,
+                    object=instance,
+                    content=content,
+                )

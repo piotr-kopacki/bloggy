@@ -271,7 +271,7 @@
                         $(".full-notification.notification-unread").each(function(index) {
                             $(this).removeClass("notification-unread");
                         })
-                        $("readnotification").each(function (index){
+                        $(".readnotification").each(function (index){
                             $(this).hide();
                         })
                         $(".fas.fa-envelope").attr("class", "fas fa-envelope-open");
@@ -398,10 +398,10 @@
                         <div class="notificationPanel" style="position:relative; width: 100%; min-width: 150px;">
                             <div class="notificationContent" style="height: 100%;">
                                 <ul class="notification-box-list" style="margin:0; padding:0;list-style-type: none;">
-                                    {% if not notifications %}
+                                    {% if not user.notifications %}
                                     <p class="text-center">You have no notifications</p>
                                     {% endif %}
-                                    {% for notification in notifications|slice:":5" %}
+                                    {% for notification in user.notifications %}
                                     <div class="notification {% if not notification.read %}notification-unread{% endif %}" id="{{notification.id}}">
                                         <li>
                                             {% if notification.type == 'user_mentioned' %}

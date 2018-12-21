@@ -23,19 +23,22 @@ class User(AbstractUser):
 
     EMAIL_FIELD = "email"
 
-    @property
+    @cached_property
     def points(self):
         """
-        Returns user points by a formula count_of_entries + upvotes_from_entries
+        Returns user points by a formula count_of_entries + upvotes_from_entries - downvotes_from_entries
         """
         user_entries = Entry.objects.filter(user=self.pk)
-        return user_entries.count() + sum(
-            [entry.upvotes.count() for entry in user_entries]
-        )
+        aggregations = user_entries.aggregate(models.Count('upvotes'), models.Count('downvotes'))
+        return user_entries.count() + aggregations['upvotes__count'] - aggregations['downvotes__count']
 
     @cached_property
     def notifications_unread_count(self):
         return Notification.objects.filter(target=self).filter(read=False).count()
+    
+    @cached_property
+    def notifications(self):
+        return Notification.objects.filter(target=self)[:5]
 
 
 
@@ -129,16 +132,23 @@ class Entry(MPTTModel):
         settings.AUTH_USER_MODEL, blank=True, related_name="downvotes"
     )
     created_date = models.DateTimeField(default=timezone.now)
+    modified_date = models.DateTimeField(blank=True, null=True)
     deleted = models.BooleanField(default=False)
     tags = models.ManyToManyField(Tag, blank=True)
 
     class MPTTMeta:
         order_insertion_by = ["-created_date"]
 
+    class Meta:
+        verbose_name_plural = "Entries"
+
     def __str__(self):
-        if not self.parent:
-            return f'"{self.content:.20}..."'
-        return f'"{self.content:.20}..."'
+        if len(self.content) > 45:
+            return f'"{self.content:.45}..."'
+        return f'"{self.content}"'
+
+    def get_absolute_url(self):
+        return reverse('entry-detail-view', args=[str(self.id)])
 
     def format_content(self):
         # Convert 'h1' (#) tag into a hyperlink to a tag
@@ -176,48 +186,18 @@ class Entry(MPTTModel):
         - Formats and cleans content
         """
         created = True if not self.pk else False
+        # If entry is being modified, update the modified date field
+        if not created:
+            self.modified_date = timezone.now()
+        # Format the content before saving
         self.format_content()
         # Call save before accessing tags field to avoid errors
         super().save(*args, **kwargs)
         # Clear tags so if user deletes a tag from content it won't appear.
         self.tags.clear()
         for tag_name in self.get_tags:
-            try:
-                tag = Tag.objects.get(name=tag_name)
-            except:
-                tag = Tag.objects.create(name=tag_name)
+            tag, _ = Tag.objects.get_or_create(name=tag_name)
             self.tags.add(tag)
-        # Notify tag observers if tag is used (only when entry is a root)
-        # Q: Why here and not in signals?
-        # A: It's just Django limitation (probably not). We need to save the object first before accessing tag field
-        #    (because it's ManyToManyField and Django doesn't allow manipulating it before it's saved in DB)
-        #    and because of that the instance that signal gets has empty tag field.
-        #    If we tried saving again then instance wouldn't be flagged as 'created'
-        #    so that would enable users to create notifications by just editing content
-        #    of an Entry and we don't want to do that.
-        if created and not self.parent:
-            for tag in self.tags.all():
-                for observer in tag.observers.all():
-                    if observer.username == self.user.username:
-                        continue
-                    reversed_user = reverse(
-                        "user-detail-view", kwargs={"username": self.user.username}
-                    )
-                    reversed_entry = reverse(
-                        "entry-detail-view", kwargs={"pk": self.pk}
-                    )
-                    reversed_tag = reverse("tag", kwargs={"tag": tag.name})
-                    content = (
-                        f'<a href="{reversed_user}">{self.user.username}</a> used tag <a href="{reversed_tag}">#{tag.name}</a>'
-                        f' in <a href="{reversed_entry}">"{self.content_formatted:.25}..."</a>'
-                    )
-                    Notification.objects.create(
-                        type="tag_used",
-                        sender=self.user,
-                        target=observer,
-                        object=self,
-                        content=content,
-                    )
 
     def delete(self, *args, **kwargs):
         """
@@ -231,28 +211,28 @@ class Entry(MPTTModel):
         else:
             super().delete(*args, **kwargs)
 
-    @property
+    @cached_property
     def votes_sum(self):
         """
         Returns substract of downvotes from upvotes
         """
         return self.upvotes.count() - self.downvotes.count()
 
-    @property
+    @cached_property
     def root_pk(self):
         """
         Returns id of root node (if node is a root node then root_pk = self.pk)
         """
         return self.get_root().pk
 
-    @property
+    @cached_property
     def has_children(self):
         """
         Returns True if entry has children nodes
         """
         return self.get_children().exists()
 
-    @property
+    @cached_property
     def get_tags(self):
         """
         Returns list of tag names in content of entry

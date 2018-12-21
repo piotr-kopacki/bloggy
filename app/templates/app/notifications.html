@@ -4,7 +4,7 @@
 <br>
 <p class="text-muted text-center">Notifications</p>
 <hr>
-<a href="#" class="read-all btn {% if notifications.unread_count > 0 %}active{% else %}disabled{% endif %}">Mark all as read</a>
+<a href="#" class="read-all btn {% if user.notifications_unread_count > 0 %}active{% else %}disabled{% endif %}">Mark all as read</a>
 <hr style="margin-bottom: 0px;">
 {% for notification in notifications_paginated %}
 <div class="full-notification {% if not notification.read %}notification-unread{% endif %}" id="{{notification.id}}">

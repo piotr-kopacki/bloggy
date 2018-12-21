@@ -129,10 +129,7 @@ def HomeView(request, sorting=None, tag=None):
     if tag:
         if re.search(r"^([a-zA-Z]+)$", tag):
             tag = tag.lower()
-            try:
-                tag_object = Tag.objects.get(name=tag)
-            except:
-                tag_object = Tag.objects.create(name=tag)
+            tag_object, _ = Tag.objects.get_or_create(name=tag)
             root_nodes = root_nodes.filter(tags__name=tag_object.name)
     # If entries are sorted by hotness, filter entries from last 6 hours
     # Also annotate 'hotness' by a simple formula (count of upvotes + count of downvotes + 0,5 * count of children)
