@@ -214,35 +214,22 @@
                         read: true,
                     },
                     success: function (data) {
-                        function unread_count(url) {
-                            var unread = 0;
-                            ret = $.ajax({
-                                url: url,
-                                type: "GET",
-                                async: false,
-                                success: function (data) {
-                                    for (var i = 0; i < data["results"].length; i++) {
-                                        if (!data["results"][i].read) {
-                                            unread += 1;
-                                        }
-                                    }
-                                }
-                            });
-                            if(ret.responseJSON.next)
-                                return unread + unread_count(ret.responseJSON.next)
-                            else
-                                return unread
-                        }
                         $("button#"+data.id+".readnotification.fas.fa-check").hide();
                         $(".notification#"+data.id).removeClass("notification-unread");
                         $("div#"+data.id+".full-notification.notification-unread").removeClass("notification-unread");
-                        unread = unread_count("{% url 'notifications-list' %}")
-                        if (unread === 0) {
-                            $(".fas.fa-envelope").attr("class", "fas fa-envelope-open");
-                            $("#notifications-unread-count").hide();
-                        } else {
-                            $("#notifications-unread-count")[0].innerHTML = unread.toString();
-                        }
+                        $.ajax({
+                                url: "{% url 'notifications-unread' %}",
+                                type: "GET",
+                                success: function (data) {
+                                    unread = data.count;
+                                    if (unread === 0) {
+                                        $(".fas.fa-envelope").attr("class", "fas fa-envelope-open");
+                                        $("#notifications-unread-count").hide();
+                                    } else {
+                                        $("#notifications-unread-count")[0].innerHTML = unread.toString();
+                                    }
+                                }
+                            });
                     },
                     error: function () {
                         console.log("error");

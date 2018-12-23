@@ -133,13 +133,13 @@ def HomeView(request, sorting=None, tag=None):
             tag_object, _ = Tag.objects.get_or_create(name=tag)
             root_nodes = root_nodes.filter(tags__name=tag_object.name)
     # If entries are sorted by hotness, filter entries from last 6 hours
-    # Also annotate 'hotness' by a simple formula (count of upvotes + count of downvotes + 0,5 * count of children)
+    # Also annotate 'hotness' by a simple formula (count of upvotes + count of downvotes + 0.5 * count of children)
     if sorting == "hot":
         root_nodes = (
             root_nodes.filter(created_date__gte=timezone.now() - timedelta(hours=6))
             .annotate(
                 hotness=(
-                    (Count("upvotes") + Count("downvotes")) * 0.5 + Count("children")
+                    (Count("upvotes") + Count("downvotes")) + (0.5 * Count("children"))
                 )
             )
             .order_by("-hotness")

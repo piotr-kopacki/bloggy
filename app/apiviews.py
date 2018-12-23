@@ -61,9 +61,18 @@ class NotificationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(user_notifications, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'])
+    def unread(self, request):
+        unread_notifications = Notification.objects.filter(target=self.request.user).filter(read=False)
+        page = self.paginate_queryset(unread_notifications)
+        if page:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(unread_notifications, many=True)
+        return Response(serializer.data)
+
     def get_queryset(self):
         return Notification.objects.filter(target=self.request.user)
-
 
 class EntryViewSet(viewsets.ModelViewSet):
     queryset = Entry.objects.all()
