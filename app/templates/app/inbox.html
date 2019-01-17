@@ -1,0 +1,66 @@
+{% extends 'app/base.html' %}
+{% load naturaltime %}
+{% block content-body %}
+<br>
+<div style="position:absolute;text-align:left">Your conversations</div>
+<div class="text-muted" style="width:100%;text-align:center">Inbox</div>
+<hr>
+<div class="conversationPanel">
+    <div class="allConversations" id="allConversations">
+        {% for conversation in all_conversations %}
+        <div class="conversationSnippet" id="conversationSnippet">
+            <a href="{% url 'inbox-user-view' conversation.target__username %}">
+                {{ conversation.target__username }}
+                {% if conversation.unread > 0 %}
+                <span class="badge badge-pill badge-primary" id="private-messages-from-unread-count">{{ conversation.unread }}</span>
+                {% endif %}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+        <input class="form-control" id="sendPrivateMessageTo" type="text" style="width: 83%; height: 40px;" placeholder="Username">
+        <textarea class="form-control" id="sendPrivateMessageText" style="width: 83%; height: 360px;" placeholder="Message"></textarea>
+        <button id="sendPrivateMessageButton" class="btn btn-primary" style="float: right;" id="sendPrivateMessageButton">Send</button>
+</div>
+
+<script>
+    $("#sendPrivateMessageButton").on('click', function(){
+        var errored = false;
+        $("#sendPrivateMessageTo").removeClass("is-invalid");
+        $("#sendPrivateMessageText").removeClass("is-invalid");
+
+        if($("#sendPrivateMessageTo")[0].value === ""){
+            errored = true;
+            $("#sendPrivateMessageTo").addClass("is-invalid");
+        }
+        if($("#sendPrivateMessageText")[0].value === ""){
+            errored = true;
+            $("#sendPrivateMessageText").addClass("is-invalid");
+        }
+        if(errored){
+            return;
+        }
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        $.ajax({
+            url: "{% url 'privatemessages-list' %}",
+            type: 'POST',
+            data: {
+                target: $("#sendPrivateMessageTo")[0].value,
+                text: $("#sendPrivateMessageText")[0].value,
+            },
+            success: function (data) {
+                window.location.replace("{% url 'inbox' %}user/" + $("#sendPrivateMessageTo")[0].value);
+            },
+            error: function (data) {
+                $("#sendPrivateMessageTo").addClass("is-invalid");
+            }
+        });
+    })
+</script>
+{% endblock %}

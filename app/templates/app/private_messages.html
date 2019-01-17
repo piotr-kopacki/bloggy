@@ -1,0 +1,146 @@
+{% extends 'app/base.html' %}
+{% load naturaltime %}
+{% block content-body %}
+<br>
+<div style="position:absolute; text-align:left"><a href="{% url 'inbox' %}"><- Inbox</a></div>
+<div class="text-muted" style="width:100%; text-align:center">Conversation with <a href="{% url 'user-detail-view' conversation_with %}">{{ conversation_with }}</a></div>
+<hr>
+<div class="conversationBox" id="conversationBox">
+    {% for message in conversation %}
+    <div class="conversationMessage">
+        <small><a href="{% url 'user-detail-view' message.author.username %}">{{ message.author }}</a></small>
+        <small>{{ message.created_date|naturaltime }}</small>
+        <p>{{message.text|safe }}</p>
+    </div>
+    {% endfor %}
+</div>
+<div class="sendPrivateMessageBox" id="sendPrivateMessageBox">
+    <textarea class="form-control" style="width: 100%;" id="sendPrivateMessageText"></textarea>
+    <button class="btn btn-primary" style="float: right;" id="sendPrivateMessageButton">Send</button>
+</div>
+
+<script>
+    var toRead = [];
+    var siteTitle = document.title;
+    function addMessage(id, author, created_date, text, read) {
+        // Div
+        var PrivateMessageDiv = document.createElement("div");
+        // Group
+        var SmallAuthor = document.createElement("small");
+        var HyperlinkedAuthor = document.createElement("a");
+        // Group
+        var SmallCreatedDate = document.createElement("small");
+        // Group
+        var Content = document.createElement("p");
+        // ---- Filling in values ----
+        if(read){
+            PrivateMessageDiv.className = "conversationMessage";
+        } else {
+            PrivateMessageDiv.className = "conversationMessage unread";
+        }
+        PrivateMessageDiv.id = "message"+id
+        // Author
+        HyperlinkedAuthor.href = "/users/" + author + "/";
+        HyperlinkedAuthor.innerHTML = author + " ";
+        SmallAuthor.appendChild(HyperlinkedAuthor);
+        // Created date
+        SmallCreatedDate.innerHTML = moment(created_date).fromNow();
+        //  Text
+        Content.innerHTML = text;
+        // ---- Appending to div
+        PrivateMessageDiv.appendChild(SmallAuthor);
+        PrivateMessageDiv.appendChild(SmallCreatedDate);
+        PrivateMessageDiv.appendChild(Content);
+        document.getElementById("conversationBox").appendChild(PrivateMessageDiv);
+    }
+    $('#sendPrivateMessageText').on("focus", function (){
+        var uniqueids = Array.from(new Set(toRead));
+        for(var i=0; i < uniqueids.length; i++){
+            readMessage(uniqueids[i]);
+        }
+        if(toRead.length > 0){
+            updateNotifications();
+        }
+        toRead = [];
+    })
+    $("#sendPrivateMessageButton").on('click', function () {
+        $("#sendPrivateMessageText").removeClass('is-invalid');
+        if ($("#sendPrivateMessageText")[0].value === "") {
+            $("#sendPrivateMessageText").addClass('is-invalid');
+            return;
+        }
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        $.ajax({
+            url: "{% url 'privatemessages-list' %}",
+            type: 'POST',
+            data: {
+                target: "{{ conversation_with }}",
+                text: $("#sendPrivateMessageText")[0].value,
+            },
+            success: function (data) {
+                addMessage(data.id, data.author, data.created_date, data.text, data.read);
+                $("#sendPrivateMessageText")[0].value = "";
+                updateScroll();
+            },
+            error: function (data) {
+                alert("Error occured while sending the message. Try again later.")
+            }
+        });
+    });
+    function updateConversationBox() {
+        $.ajax({
+            url: "{% url 'privatemessages-unread' %}?from={{conversation_with}}",
+            type: "GET",
+            success: function (data) {
+                if (data.length == 0) {
+                    return;
+                }
+                for (var i = 0; i < data.length; i++) {
+                    if(toRead.indexOf(data[i].id) > -1){
+                        continue;
+                    }
+                    if($('#sendPrivateMessageText').is(":focus")){
+                        addMessage(data[i].id, "{{ conversation_with }}", data[i].created_date, data[i].text, true);
+                        readMessage(data[i].id);
+                    } else {
+                        addMessage(data[i].id, "{{ conversation_with }}", data[i].created_date, data[i].text, data.read);
+                        toRead.push(data[i].id);
+                    }
+                }
+                updateScroll();
+            }
+        });
+    }
+    function readMessage(id) {
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        $.ajax({
+            url: "{% url 'privatemessages-list' %}" + id + "/read/",
+            type: 'POST',
+            success: function(data){
+                $("#message"+id).removeClass("unread");
+            },
+        });
+    }
+    function updateScroll() {
+        var element = document.getElementById("conversationBox");
+        element.scrollTop = element.scrollHeight;
+    }
+    $(document).ready(function () {
+        updateScroll();
+    });
+    setInterval(updateConversationBox, 1500)
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.23.0/moment.min.js"></script>
+{% endblock %}

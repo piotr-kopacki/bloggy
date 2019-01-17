@@ -15,6 +15,7 @@
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/lightfair.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.23.0/moment.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
     {% load static %}
     <link rel="stylesheet" href="{% static 'app/style.css' %}">
@@ -39,6 +40,66 @@
             return cookieValue;
         }
         var csrftoken = getCookie('csrftoken');
+        function readNotification(id){
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+            $.ajax({
+                url: "{% url 'notifications-list' %}" + id + "/read/",
+                type: 'POST',
+                success: function (data) {
+                    $(".notification#"+id).removeClass("notification-unread");
+                    $("#"+id+".read-notification").hide();
+                    $("#"+id+".read-full-notification").hide();
+                    $("#"+id+".full-notification").removeClass("notification-unread");
+                    updateNotificationPanel();
+                },
+            });
+        }
+        $(document).on('click', '.read-full-notification', function(e){
+            readNotification(e.target.id);
+        });
+        $(document).on('click', '.read-notification', function (e) {
+            e.stopPropagation();
+            readNotification(e.target.id);
+        })
+        $(document).on('click', '.read-all-notifications', function(e){
+            e.preventDefault();
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+            $.ajax({
+                url: "{% url 'notifications-read-all' %}",
+                type: 'POST',
+                success: function (data) {
+                    $(".read-full-notification").each(function (index){
+                        $(this).hide()
+                    })
+                    $(".read-notification").each(function (index){
+                        $(this).hide()
+                    })
+                    $(".notification").each(function (index) {
+                        $(this).removeClass("notification-unread");
+                    })
+                    $(".full-notification").each(function(index) {
+                        $(this).removeClass("notification-unread");
+                    })
+                    $(".fas.fa-bell").attr("class", "far fa-bell");
+                    $("#notifications-unread-count").hide();
+                },
+                error: function () {
+                    console.log("error");
+                }
+            });
+        })
         $(document).on('click', ".answerButton", function (e) {
             e.preventDefault();
             $(".editForm").hide();
@@ -130,14 +191,15 @@
                 url: "{% url 'entry-list' %}",
                 type: 'POST',
                 data: {
-                    parent: $(this).attr('value'),
+                    parent: "{{ request.scheme }}://{{ request.get_host }}{% url 'entry-list' %}" + $(this).attr('value') + "/",
                     content: $(this)[0][0].value,
                 },
                 success: function () {
                     location.reload();
                 },
-                error: function () {
+                error: function (data) {
                     console.log("error");
+                    console.log(data);
                 }
             });
         });
@@ -191,86 +253,6 @@
                     }
                 });
         }
-        $("document").ready(function () {
-            $('.dropdown-menu').on('click', function (e) {
-                if ($(this).hasClass('notification-panel')) {
-                    e.stopPropagation();
-                }
-            });
-        });
-        $(document).ready(function () {
-            $(".readnotification").on('click', function (e) {
-                $.ajaxSetup({
-                    beforeSend: function (xhr, settings) {
-                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                        }
-                    }
-                });
-                $.ajax({
-                    url: "{% url 'notifications-list' %}" + $(this).attr('id') + "/",
-                    type: 'PATCH',
-                    data: {
-                        read: true,
-                    },
-                    success: function (data) {
-                        $("button#"+data.id+".readnotification.fas.fa-check").hide();
-                        $(".notification#"+data.id).removeClass("notification-unread");
-                        $("div#"+data.id+".full-notification.notification-unread").removeClass("notification-unread");
-                        $.ajax({
-                                url: "{% url 'notifications-unread' %}",
-                                type: "GET",
-                                success: function (data) {
-                                    unread = data.count;
-                                    if (unread === 0) {
-                                        $(".fas.fa-envelope").attr("class", "fas fa-envelope-open");
-                                        $("#notifications-unread-count").hide();
-                                    } else {
-                                        $("#notifications-unread-count")[0].innerHTML = unread.toString();
-                                    }
-                                }
-                            });
-                    },
-                    error: function () {
-                        console.log("error");
-                    }
-                });
-            })
-        });
-        $(document).ready(function (){
-            $(".read-all").on('click', function (e) {
-                e.preventDefault();
-                $.ajaxSetup({
-                    beforeSend: function (xhr, settings) {
-                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                        }
-                    }
-                });
-                $.ajax({
-                    url: "{% url 'notifications-read-all' %}",
-                    type: 'POST',
-                    success: function (data) {
-                        $("button#"+data.id+".readnotification.fas.fa-check").hide();
-                        $(".notification").each(function (index) {
-                            $(this).removeClass("notification-unread");
-                        })
-                        $(".full-notification.notification-unread").each(function(index) {
-                            $(this).removeClass("notification-unread");
-                        })
-                        $(".readnotification").each(function (index){
-                            $(this).hide();
-                        })
-                        $(".fas.fa-envelope").attr("class", "fas fa-envelope-open");
-                        $("#notifications-unread-count").hide();
-                    },
-                    error: function () {
-                        console.log("error");
-                    }
-                });
-
-            });
-        });
         $(document).ready(function (){
             $(".observe-button").on('click', function (e) {
                 e.preventDefault();
@@ -287,7 +269,6 @@
                     {% endif %}
                     type: 'POST',
                     success: function (data) {
-                        console.log(data);
                         if(data.user_observes){
                             $(".observe-button")[0].innerHTML = "Don't observe";
                             $(".blacklist-button").hide();
@@ -321,7 +302,6 @@
                     {% endif %}
                     type: 'POST',
                     success: function (data) {
-                        console.log(data);
                         if(data.user_blacklisted){
                             $(".blacklist-button")[0].innerHTML = "Don't blacklist";
                             $(".observe-button").hide();
@@ -339,6 +319,94 @@
 
             });
         });
+        function addNotification(notification){
+            $.ajax({
+                url: "{% url 'entry-list' %}" + notification.object + "/",
+                type: "GET",
+                success: function (data) {
+                    var entry_content = data.content.slice(0, 25);
+                    var NotificationDiv = document.createElement("div");
+                    NotificationDiv.className = "notification notification-unread";
+                    NotificationDiv.id = notification.id;
+                    if(notification.type == "user_mentioned"){
+                        NotificationDiv.innerHTML = `<li><a href="/users/${notification.sender}/">${notification.sender}</a> has mentioned you in his entry <a href="/entries/${notification.object}/">${entry_content}...</a></li><button class="read-notification fas fa-check" id="${notification.id}"></button><hr style="margin-bottom: 0px;">`;
+                    } else if (notification.type == "user_replied") {
+                        NotificationDiv.innerHTML = `<li><a href="/users/${notification.sender}/">${notification.sender}</a> has replied to you <a href="/entries/${notification.object}/">${entry_content}...</a></li><button class="read-notification fas fa-check" id="${notification.id}"></button><hr style="margin-bottom: 0px;">`;
+                    } else if (notification.type == "tag_used") {
+                        NotificationDiv.innerHTML = `<li>${notification.content}</li>`;
+                    }
+                    NotificationDiv.innerHTML += moment(notification.created_date).fromNow();
+                    NotificationDiv.innerHTML += `<button class="read-notification fas fa-check" id="${notification.id}"></button><hr style="margin-bottom: 0px;">`
+                    $("#notification-box-list").prepend(NotificationDiv);
+                    if($(".notification")[5] != null){
+                        $(".notification")[5].remove();
+                    }
+                }
+            });
+        }
+        var unread_pms = 0;
+        function updateInbox() {
+            $.ajax({
+                url: "{% url 'privatemessages-unread' %}?limit=0",
+                type: "GET",
+                success: function (data) {
+                    if (data.length == 0) {
+                        $(".fas.fa-envelope").attr("class", "far fa-envelope");
+                        $("#private-messages-unread-count").hide();
+                    } else {
+                        $(".far.fa-envelope").attr("class", "fas fa-envelope");
+                        $("#private-messages-unread-count")[0].innerHTML = data.length;
+                        $("#private-messages-unread-count").show();
+                    }
+                    unread_pms = data.length;
+                }
+            });
+        }
+        var unread_notifications = 0;
+        function updateNotificationPanel(){
+            var latestID = -1;
+            if($(".notification")[0].id !== null){
+                latestID = parseInt($(".notification")[0].id)
+            }
+            $.ajax({
+                url: "{% url 'notifications-unread' %}?limit=5",
+                type: "GET",
+                success: function (data) {
+                    if(data.count != null){
+                        for(var i=data.results.length-1; i >= 0; i--){
+                            if(data.results[i].id <= latestID){
+                                continue;
+                            } else {
+                                addNotification(data.results[i]);
+                            }
+                        }
+                        
+                    }
+                    if (data.length == 0 || data.count == null) {
+                        $(".fas.fa-bell").attr("class", "far fa-bell");
+                        $("#notifications-unread-count").hide();
+                    } else {
+                        $(".far.fa-bell").attr("class", "fas fa-bell");
+                        $("#notifications-unread-count")[0].innerHTML = data.count;
+                        $("#notifications-unread-count").show();
+                    }
+                    if(data.count == null){
+                        unread_notifications = 0;
+                    } else {
+                        unread_notifications = data.count;
+                    }
+                    
+                }
+            });
+        }
+        {% if user.is_authenticated %}
+        function updateNotifications(){
+            updateInbox();
+            updateNotificationPanel();
+            //console.log(unread_pms, unread_notifications);
+        }
+        setInterval(updateNotifications, 10000)
+        {% endif %}
     </script>
     {% endblock %}
 </head>
@@ -371,20 +439,32 @@
                 <a href="{% url 'ranking' %}" class="nav-item nav-link active">Ranking</a>
                 <a href="{% url 'api-root' %}" class="nav-item nav-link active mr-auto">API</a>
             </div>
+            <a href="{% url 'inbox' %}" style="margin-right: 15px; color:white;">
+                {% if user.private_messages_unread_count > 0 %}
+                <i class="fas fa-envelope" id="private-messages-envelope">
+                    <span class="badge badge-pill badge-primary" id="private-messages-unread-count">{{ user.private_messages_unread_count }}</span>
+                {% else %}
+                <i class="far fa-envelope" id="private-messages-envelope">
+                    <span class="badge badge-pill badge-primary" id="private-messages-unread-count" style="display: none;"></span>
+                {% endif %}
+                </i>  
+            </a>
             <div class="dropdown show" style="margin-right: 15px;">
                 <a style="color: white;" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false">
                     {% if user.notifications_unread_count > 0 %}
-                    <i class="fas fa-envelope"><span class="badge badge-pill badge-primary" id="notifications-unread-count">{{ user.notifications_unread_count }}</span></i>
+                    <i class="fas fa-bell" id="notifications-unread-bell">
+                        <span class="badge badge-pill badge-primary" id="notifications-unread-count">{{ user.notifications_unread_count }}</span></i>
                     {% else %}
-                    <i class="fas fa-envelope-open"></i>
+                    <i class="far fa-bell" id="notifications-unread-bell">
+                        <span class="badge badge-pill badge-primary" id="notifications-unread-count" style="display: none;">{{ user.notifications_unread_count }}</span></i>
                     {% endif %}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right notification-panel" style="padding: 0px;">
                     <li>
-                        <div class="notificationPanel" style="position:relative; width: 100%; min-width: 150px;">
+                        <div class="notificationPanel" style="position:relative; width: 100%; min-width: 200px;">
                             <div class="notificationContent" style="height: 100%;">
-                                <ul class="notification-box-list" style="margin:0; padding:0;list-style-type: none;">
+                                <ul class="notification-box-list" id="notification-box-list" style="margin:0; padding:0;list-style-type: none;">
                                     {% if not user.notifications %}
                                     <p class="text-center">You have no notifications</p>
                                     {% endif %}
@@ -402,10 +482,10 @@
                                             {{ notification.content|safe }}
                                             {% endif %}
                                             {{notification.created_date|naturaltime}}
+                                            {% if not notification.read %}
+                                            <button class="read-notification fas fa-check" id="{{notification.id}}"></button>
+                                            {% endif %}
                                         </li>
-                                        {% if not notification.read %}
-                                        <button class="readnotification fas fa-check" id="{{notification.id}}"></button>
-                                        {% endif %}
                                         <hr style="margin-bottom: 0px;">
                                     </div>
                                     {% endfor %}
@@ -450,7 +530,6 @@
         </div>
     </div>
     {% endblock %}
-    <script src="https://fastcdn.org/Readmore.js/2.1.0/readmore.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
         crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"

@@ -1,7 +1,7 @@
 bleach==3.0.2
 Markdown==3.0.1
 bleach_whitelist==0.0.9
-Django==2.1.2
+Django==2.1.5
 django_mptt==0.9.1
 djangorestframework==3.9.0
 django-allauth==0.38.0

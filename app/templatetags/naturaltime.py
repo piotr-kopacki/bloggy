@@ -8,10 +8,9 @@ from django.template import defaultfilters
 from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
 from django.utils.timezone import is_aware, utc
-from django.utils.translation import (
-    gettext as _, gettext_lazy, ngettext, ngettext_lazy, npgettext_lazy,
-    pgettext,
-)
+from django.utils.translation import gettext as _
+from django.utils.translation import (gettext_lazy, ngettext, ngettext_lazy,
+                                      npgettext_lazy, pgettext)
 
 register = template.Library()
 

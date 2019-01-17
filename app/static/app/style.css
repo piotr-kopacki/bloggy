@@ -188,7 +188,7 @@ body > * {
 }
 
 .notification {
-  font-size: 12px;
+  font-size: 13px;
   margin-top: 0px;
   background-color: rgb(236, 236, 236);
 }
@@ -197,7 +197,12 @@ body > * {
   background-color: transparent;
 }
 
-.readnotification {
+.read-notification {
+  border-style: none;
+  background-color: transparent;
+}
+
+.read-full-notification {
   border-style: none;
   background-color: transparent;
 }
@@ -205,4 +210,29 @@ body > * {
 .blacklist-button {
   background-color: black;
   color: white;
+}
+
+.conversationBox {
+  overflow: auto;
+  height: 400px;
+  border: 1px solid rgba(76, 60, 27, 0.347);
+  padding: 5px;
+}
+
+.sendPrivateMessageBox {
+  width: 100%;
+}
+
+.conversationMessage.unread {
+  background-color: rgb(255, 254, 231)
+}
+
+.allConversations{
+  overflow: scroll;
+  height: 400px;
+  border: 1px solid rgba(76, 60, 27, 0.347);
+  padding: 5px;
+  float: left; 
+  width: 15%; 
+  margin-right: 2%;
 }

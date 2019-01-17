@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class DeletedReadOnly(permissions.BasePermission):
     message = "Deleted entries are read-only"
 
@@ -31,3 +32,17 @@ class DisallowVoteChanges(permissions.BasePermission):
         if request.data.get("downvotes") or request.data.get("upvotes"):
             return False
         return True
+
+
+class PrivateMessagePostAndGetOnly(permissions.BasePermission):
+    message = "You can only POST or GET private messages"
+
+    def has_object_permission(self, request, view, obj):
+        return request.method in ['GET', 'POST']
+
+
+class PrivateMessageGetOnlyRelatedMessages(permissions.BasePermission):
+    message = "You are now allowed to see this message"
+
+    def has_object_permission(self, request, view, obj):
+        return obj.author == request.user or obj.target == request.user

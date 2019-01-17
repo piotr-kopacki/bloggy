@@ -13,21 +13,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from allauth.account.views import (EmailView, LoginView, LogoutView,
+                                   PasswordResetDoneView,
+                                   PasswordResetFromKeyDoneView,
+                                   PasswordResetFromKeyView, PasswordResetView,
+                                   SignupView)
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.decorators import user_passes_test
 from django.urls import include, path
-
-from allauth.account.views import (
-    SignupView,
-    LoginView,
-    LogoutView,
-    PasswordResetView,
-    EmailView,
-    PasswordResetFromKeyView,
-    PasswordResetDoneView,
-    PasswordResetFromKeyDoneView,
-)
 
 from .api import router
 

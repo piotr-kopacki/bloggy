@@ -4,7 +4,7 @@
 <br>
 <p class="text-muted text-center">Notifications</p>
 <hr>
-<a href="#" class="read-all btn {% if user.notifications_unread_count > 0 %}active{% else %}disabled{% endif %}">Mark all as read</a>
+<a href="#" class="read-all-notifications btn {% if user.notifications_unread_count > 0 %}active{% else %}disabled{% endif %}">Mark all as read</a>
 <hr style="margin-bottom: 0px;">
 {% for notification in notifications_paginated %}
 <div class="full-notification {% if not notification.read %}notification-unread{% endif %}" id="{{notification.id}}">
@@ -22,7 +22,7 @@
         {% endif %}
         {{notification.created_date|naturaltime}}
         {% if not notification.read %}
-        <button class="readnotification fas fa-check" id="{{notification.id}}"></button>
+        <button class="read-full-notification fas fa-check" id="{{notification.id}}"></button>
         {% endif %}
     </li>
     <hr style="margin-bottom: 0px;">

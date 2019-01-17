@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Entry, User, Notification, Tag
+from .models import Entry, Notification, Tag, User
 
 MARKDOWN_SAMPLE = """# hello, This is Markdown Live Preview
 ----
@@ -204,6 +204,8 @@ class TagTestCase(TestCase):
         Entry.objects.create(user=self.u2, content="#testtag this #should_ create 1 notification")
         self.assertEqual(Notification.objects.all().count(), 2)
         Entry.objects.create(user=self.u3, content="#testtag this should create 2 notifications")
+        self.assertEqual(Notification.objects.all().count(), 4)
+        Entry.objects.all().update(content="#this #should #not #create #notifications!")
         self.assertEqual(Notification.objects.all().count(), 4)
 
     def test_tag_creation(self):

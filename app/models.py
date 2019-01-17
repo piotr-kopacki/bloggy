@@ -1,6 +1,7 @@
+import re
+
 import bleach
 import markdown
-import re
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -38,8 +39,11 @@ class User(AbstractUser):
     
     @cached_property
     def notifications(self):
-        return Notification.objects.filter(target=self)[:5]
+        return Notification.objects.filter(target=self).order_by('-id')[:5]
 
+    @cached_property
+    def private_messages_unread_count(self):
+        return PrivateMessage.objects.filter(target=self).filter(read=False).count()
 
 
 class Tag(models.Model):
@@ -99,6 +103,29 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ["-created_date"]
+
+
+class PrivateMessage(models.Model):
+    """
+    Class for a private message model. It is very similiar to a notification model.
+
+    ::author - user who sent a message
+    ::text   - content of a message
+    ::target - target user who recieved the message
+    ::read   - true if user has read the message
+    ::created_date - datetime when message was sent by author
+    ::read_date    - datetime when message was read by target
+    """
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pms_sent")
+    text = models.CharField(max_length=500)
+    target = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pms_received")
+    read = models.BooleanField(default=False)
+    created_date = models.DateTimeField(auto_now_add=True)
+    read_date = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.text = bleach.clean(self.text, tags=[], attributes=[])
+        super().save(*args, **kwargs)
 
 
 class Entry(MPTTModel):
