@@ -253,6 +253,7 @@
                     }
                 });
         }
+        {% if browsed_tag.name %}
         $(document).ready(function (){
             $(".observe-button").on('click', function (e) {
                 e.preventDefault();
@@ -264,9 +265,7 @@
                     }
                 });
                 $.ajax({
-                    {% if browsed_tag.name %}
                     url: "{% url 'tags-observe' browsed_tag.name %}",
-                    {% endif %}
                     type: 'POST',
                     success: function (data) {
                         if(data.user_observes){
@@ -286,6 +285,7 @@
 
             });
         });
+        {% endif %}
         $(document).ready(function (){
             $(".blacklist-button").on('click', function (e) {
                 e.preventDefault();
@@ -365,7 +365,7 @@
         var unread_notifications = 0;
         function updateNotificationPanel(){
             var latestID = -1;
-            if($(".notification")[0].id !== null){
+            if($(".notification")[0] != null){
                 latestID = parseInt($(".notification")[0].id)
             }
             $.ajax({

@@ -72,7 +72,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def read(self, request, pk=None):
         notification = self.get_object()
-        if request.user == notification.target:
+        if self.request.user == notification.target:
             notification.read = True
             notification.save()
             serializer = self.get_serializer(notification)

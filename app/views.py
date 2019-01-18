@@ -15,7 +15,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
-from mptt.utils import get_cached_trees
 
 from .models import Entry, Notification, PrivateMessage, Tag, User
 
@@ -44,11 +43,12 @@ class PrivateMessageView(LoginRequiredMixin, View):
         context = {}
         if target and target != self.request.user.username:
             target = get_object_or_404(User, username=target)
+            PrivateMessage.objects.filter(Q(target=self.request.user) & Q(author=target)).update(read=True, read_date=timezone.now())
             context["conversation"] = PrivateMessage.objects.filter(
                 (Q(target=self.request.user) & Q(author=target))
                 | (Q(target=target) & Q(author=self.request.user))
             ).order_by("created_date")
-            context["conversation"].update(read=True)
+            
             context["conversation_with"] = target.username
         else:
             """
