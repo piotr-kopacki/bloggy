@@ -125,3 +125,161 @@
     </span>
 </div>
 {% endblock %}
+
+{% block extra-scripts %}
+<script>
+    function vote(pk, type) {
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        $.post("{% url 'vote-list' %}",
+            {
+                pk: pk,
+                votetype: type
+            },
+            function (data, status) {
+                if (status === "success")
+                    document.getElementById("upvote" + data.id).classList.remove('user-upvoted');
+                document.getElementById("downvote" + data.id).classList.remove('user-downvoted');
+                document.getElementById("votes" + data.id).innerHTML = data.upvotes - data.downvotes;
+                if (data.user_upvoted) {
+                    document.getElementById("upvote" + data.id).classList.add('user-upvoted');
+                } else if (data.user_downvoted) {
+                    document.getElementById("downvote" + data.id).classList.add('user-downvoted');
+                }
+            });
+    }
+    $(document).on('click', ".answerButton", function (e) {
+        e.preventDefault();
+        $(".editForm").hide();
+        $(".content").show();
+        if ($("#form" + $(this).attr('value')).is(':visible')) {
+            $(".commentForm").hide();
+        } else {
+            $(".commentForm").hide();
+            $("#form" + $(this).attr('value')).toggle();
+            $("#form" + $(this).attr('value'))[0][0].focus();
+        }
+    });
+    $(document).on('click', ".editButton", function (e) {
+        e.preventDefault();
+        $(".commentForm").hide();
+        $(".content").show();
+        if ($("#editForm" + $(this).attr('value')).is(':visible')) {
+            $(".editForm").hide();
+            $("#content" + $(this).attr('value')).show();
+        } else {
+            $(".editForm").hide();
+            $("#editForm" + $(this).attr('value')).toggle();
+            $("#editForm" + $(this).attr('value'))[0][0].focus();
+            $("#content" + $(this).attr('value')).hide();
+        }
+    });
+    $(document).on('click', ".deleteButton", function (e) {
+        e.preventDefault();
+        if (window.confirm("Are you sure?")) {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+            $.ajax({
+                url: "{% url 'entry-list' %}" + $(this).attr('value') + "/",
+                type: 'DELETE',
+                success: function (data) {
+                    console.log(data);
+                    window.location.replace("{% url 'home' %}");
+                },
+                error: function () {
+                    console.log("error");
+                }
+            });
+        }
+    });
+    $(document).on('submit', '.editForm', function (e) {
+        e.preventDefault();
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        $.ajax({
+            url: "{% url 'entry-list' %}" + $(this).attr('value') + "/",
+            type: 'PATCH',
+            data: {
+                content: $(this)[0][0].value,
+            },
+            success: function (data) { // this happens after we get results
+                $("#content" + data.id)[0].innerHTML = data.content_formatted;
+                $("#content" + data.id).show();
+                $("#content" + data.id).focus();
+                $("#editForm" + data.id).hide();
+                $('pre code').each(function (i, block) {
+                    hljs.highlightBlock(block);
+                });
+            },
+            error: function () {
+                console.log("error");
+            }
+        });
+    });
+    $(document).on('submit', '.commentForm', function (e) {
+        e.preventDefault();
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        $.ajax({
+            url: "{% url 'entry-list' %}",
+            type: 'POST',
+            data: {
+                parent: "{{ request.scheme }}://{{ request.get_host }}{% url 'entry-list' %}" + $(this).attr('value') + "/",
+                content: $(this)[0][0].value,
+            },
+            success: function () {
+                location.reload();
+            },
+            error: function (data) {
+                console.log("error");
+                console.log(data);
+            }
+        });
+    });
+    $(document).ready(function () {
+        $(".discussionForm").submit(function (e) {
+            e.preventDefault();
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+            $.ajax({
+                url: "{% url 'entry-list' %}",
+                type: 'POST',
+                data: {
+                    content: $(this)[0][0].value,
+                },
+                success: function (data) {
+                    window.location.replace("/entries/" + data.id);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
