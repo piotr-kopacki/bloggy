@@ -128,6 +128,29 @@ class PrivateMessage(models.Model):
         super().save(*args, **kwargs)
 
 
+class DeletedEntry(models.Model):
+    """
+    Model to store data of deleted Entry.
+
+    ::old_id     - id of deleted entry
+    ::user       - id of author of deleted entry
+    ::parent     - id parent entry
+    ::content    - nonformatted content but cleaned with bleach
+    ::upvoters   - users who upvoted deleted entry
+    ::downvoters - users who downvoted deleted entry
+    ::created_on - datetime of creation
+    ::deleted_on - datetime of deletion
+    """
+    old_id = models.IntegerField()
+    user = models.IntegerField()
+    parent = models.IntegerField(blank=True, null=True)
+    content = models.TextField()
+    upvoters = models.TextField(blank=True, null=True)
+    downvoters = models.TextField(blank=True, null=True)
+    created_on = models.DateTimeField()
+    deleted_on = models.DateTimeField(auto_now_add=True)
+
+
 class Entry(MPTTModel):
     """
     Model for a blog entry.
@@ -231,11 +254,27 @@ class Entry(MPTTModel):
         """
         # Delete notifications related to an entry
         Notification.objects.filter(object_id=self.pk).delete()
+        # Create a DeletedEntry object to store data about original entry
+        if not self.deleted:
+            self.create_deleted_entry()
         if self.has_children:
             self.deleted = True
+            self.content = "<p><em>deleted</em></p>"
+            self.content_formatted = "<p><em>deleted</em></p>"
             self.save()
         else:
             super().delete(*args, **kwargs)
+
+    def create_deleted_entry(self):
+        DeletedEntry.objects.create(
+            old_id=self.pk,
+            parent=self.parent.pk if self.parent else None,
+            user=self.user.pk,
+            content=self.content,
+            upvoters=str([user.id for user in self.upvotes.all()]),
+            downvoters=str([user.id for user in self.downvotes.all()]),
+            created_on=self.created_date,
+        )
 
     @cached_property
     def votes_sum(self):

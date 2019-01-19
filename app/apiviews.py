@@ -163,10 +163,6 @@ class EntryViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         queryset = self.get_queryset()
-        for entry in queryset:
-            if entry.deleted:
-                entry.content = "deleted"
-                entry.content_formatted = "<em>deleted<em>"
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(
@@ -180,9 +176,6 @@ class EntryViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, pk=None):
         entry = get_object_or_404(Entry, pk=pk)
-        if entry.deleted:
-            entry.content = "deleted"
-            entry.content_formatted = "<em>deleted</em>"
         context = {"request": request}
         serializer = self.serializer_class(entry, many=False, context=context)
         return Response(serializer.data)

@@ -14,7 +14,8 @@ class IsTarget(permissions.BasePermission):
     message = "You are not allowed to read this notification."
 
     def has_object_permission(self, request, view, obj):
-        return request.user.pk == obj.target.pk and request.method not in ['DELETE']
+        return request.user.pk == obj.target.pk and request.method not in ["DELETE"]
+
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     message = "Not an owner."
@@ -38,7 +39,7 @@ class PrivateMessagePostAndGetOnly(permissions.BasePermission):
     message = "You can only POST or GET private messages"
 
     def has_object_permission(self, request, view, obj):
-        return request.method in ['GET', 'POST']
+        return request.method in ["GET", "POST"]
 
 
 class PrivateMessageGetOnlyRelatedMessages(permissions.BasePermission):

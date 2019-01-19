@@ -105,7 +105,7 @@ body > * {
   }
 }
 
-.anchor {
+.entry-anchor {
   display: block;
   position: relative;
   top: -250px;
@@ -117,8 +117,24 @@ body > * {
 }
 
 .usernode {
+  border-left: 1px solid rgba(8, 189, 147, 0.666);
+}
+
+.usernode p{
+  margin-bottom: 5px;
+}
+
+.rootnode p{
+  margin-bottom: 5px;
+}
+
+.opnode {
   border-left: 1px solid rgba(15, 191, 255, 0.496);
 }
+.commentnode {
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 
 .footer {
     position: fixed;
@@ -133,31 +149,35 @@ body > * {
 }
 
 /* Custom Markdown Styling */
-.content h1{
+.entry-content {
+  margin-left: 5px; 
+  word-wrap: break-word; 
+}
+.entry-content h1{
   font-size: 18px;
 }
 
-.content h2{
+.entry-content h2{
   font-size: 16px;
 }
 
-.content h3{
+.entry-contentt h3{
   font-size: 16px;
 }
 
-.content h4{
+.entry-content h4{
   font-size: 16px;
 }
 
-.content h5{
+.entry-content h5{
   font-size: 16px;
 }
 
-.content h6{
+.entry-content h6{
   font-size: 16px;
 }
 
-.content pre code {
+.entry-content pre code {
   background-color: rgb(246, 246, 246);
 }
 /* ----------------------- */
@@ -236,3 +256,4 @@ body > * {
   width: 15%; 
   margin-right: 2%;
 }
+
