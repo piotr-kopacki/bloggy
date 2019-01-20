@@ -184,7 +184,7 @@ class Entry(MPTTModel):
     created_date = models.DateTimeField(default=timezone.now)
     modified_date = models.DateTimeField(blank=True, null=True)
     deleted = models.BooleanField(default=False)
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag, blank=True)
 
     class MPTTMeta:
         order_insertion_by = ["-created_date"]

@@ -1,5 +1,13 @@
 from rest_framework import permissions
 
+class TagGetOnly(permissions.BasePermission):
+    message = "GET is allowed only"
+
+    def has_object_permission(self, request, view, obj):
+        if view.action in ['blacklist', 'observe']:
+            return True
+        return request.method in permissions.SAFE_METHODS
+
 
 class DeletedReadOnly(permissions.BasePermission):
     message = "Deleted entries are read-only"

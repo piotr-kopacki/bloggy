@@ -172,9 +172,9 @@
                     NotificationDiv.className = "notification notification-unread";
                     NotificationDiv.id = notification.id;
                     if(notification.type == "user_mentioned"){
-                        NotificationDiv.innerHTML = `<li><a href="/users/${notification.sender}/">${notification.sender}</a> has mentioned you in his entry <a href="/entries/${notification.object}/">${entry_content}...</a></li><button class="read-notification fas fa-check" id="${notification.id}"></button><hr style="margin-bottom: 0px;">`;
+                        NotificationDiv.innerHTML = `<li><a href="/users/${notification.sender}/">${notification.sender}</a> has mentioned you in his entry <a href="/entries/${notification.object}/">${entry_content}...</a></li>`;
                     } else if (notification.type == "user_replied") {
-                        NotificationDiv.innerHTML = `<li><a href="/users/${notification.sender}/">${notification.sender}</a> has replied to you <a href="/entries/${notification.object}/">${entry_content}...</a></li><button class="read-notification fas fa-check" id="${notification.id}"></button><hr style="margin-bottom: 0px;">`;
+                        NotificationDiv.innerHTML = `<li><a href="/users/${notification.sender}/">${notification.sender}</a> has replied to you <a href="/entries/${notification.object}/">${entry_content}...</a></li>`;
                     } else if (notification.type == "tag_used") {
                         NotificationDiv.innerHTML = `<li>${notification.content}</li>`;
                     }

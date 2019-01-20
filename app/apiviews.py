@@ -12,14 +12,14 @@ from .models import Entry, Notification, PrivateMessage, Tag, User
 from .permissions import (DeletedReadOnly, DisallowVoteChanges,
                           IsOwnerOrReadOnly, IsTarget,
                           PrivateMessageGetOnlyRelatedMessages,
-                          PrivateMessagePostAndGetOnly)
+                          PrivateMessagePostAndGetOnly, TagGetOnly)
 from .serializers import (EntrySerializer, NotificationSerializer,
                           PrivateMessageSerializer, TagSerializer)
 
 
 class TagViewSet(viewsets.ModelViewSet):
     serializer_class = TagSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, TagGetOnly]
 
     @action(detail=True, methods=["post"])
     def blacklist(self, request, pk=None):
