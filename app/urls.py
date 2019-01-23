@@ -4,10 +4,10 @@ from .views import (EntryDetailView, HomeView, NotificationListView,
                     PrivateMessageView, UserDetailView, UserRankingView)
 
 urlpatterns = [
-    path("", HomeView, name="home"),
-    path("top/", HomeView, {"sorting": "top"}, name="top"),
-    path("hot/", HomeView, {"sorting": "hot"}, name="hot"),
-    path("entries/tag/<str:tag>/", HomeView, name="tag"),
+    path("", HomeView.as_view(), name="home"),
+    path("top/", HomeView.as_view(), {"sorting": "top"}, name="top"),
+    path("hot/", HomeView.as_view(), {"sorting": "hot"}, name="hot"),
+    path("entries/tag/<str:tag>/", HomeView.as_view(), name="tag"),
     path("ranking/", UserRankingView.as_view(), name="ranking"),
     path("entries/<int:pk>/", EntryDetailView.as_view(), name="entry-detail-view"),
     path("notifications/", NotificationListView.as_view(), name="notifications-all"),

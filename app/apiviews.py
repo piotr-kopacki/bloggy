@@ -12,7 +12,7 @@ from .models import Entry, Notification, PrivateMessage, Tag, User
 from .permissions import (DeletedReadOnly, DisallowVoteChanges,
                           IsOwnerOrReadOnly, IsTarget,
                           PrivateMessageGetOnlyRelatedMessages,
-                          PrivateMessagePostAndGetOnly, TagGetOnly)
+                          PrivateMessagePostAndGetOnly, TagGetOnly, NotificationGetOnly)
 from .serializers import (EntrySerializer, NotificationSerializer,
                           PrivateMessageSerializer, TagSerializer)
 
@@ -55,7 +55,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
-    permission_classes = [IsTarget, IsAuthenticated]
+    permission_classes = [IsTarget, IsAuthenticated, NotificationGetOnly]
 
     @action(detail=False, methods=["post"])
     def read_all(self, request):

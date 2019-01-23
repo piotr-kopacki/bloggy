@@ -9,6 +9,15 @@ class TagGetOnly(permissions.BasePermission):
         return request.method in permissions.SAFE_METHODS
 
 
+class NotificationGetOnly(permissions.BasePermission):
+    message = "GET is allowed only"
+
+    def has_permission(self, request, view):
+        if view.action in ['read', 'read_all']:
+            return True
+        return request.method in permissions.SAFE_METHODS
+
+
 class DeletedReadOnly(permissions.BasePermission):
     message = "Deleted entries are read-only"
 

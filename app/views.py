@@ -172,66 +172,78 @@ class UserDetailView(DetailView):
         return context
 
 
-def HomeView(request, sorting=None, tag=None):
+class HomeView(View):
     """
     Home (front page) view.
-    It accepts one keyword parameter 'sorting' which is passed from 'hot' and 'top' views.
-    To sort a TreeModel from django-mptt this function first sorts root nodes and then
-    rebuilds the trees using get_descendants method on every root.
     """
-    root_nodes = Entry.objects.root_nodes()
-    tag_object = None
-    if tag:
-        if re.search(r"^([a-zA-Z]+)$", tag):
-            tag = tag.lower()
-            tag_object, _ = Tag.objects.get_or_create(name=tag)
-            root_nodes = root_nodes.filter(tags__name=tag_object.name)
-    # If entries are sorted by hotness, filter entries from last 6 hours
-    # Also annotate 'hotness' by a simple formula (count of upvotes + count of downvotes + 0.5 * count of children)
-    if sorting == "hot":
-        root_nodes = (
-            root_nodes.filter(created_date__gte=timezone.now() - timedelta(hours=6))
-            .annotate(
-                hotness=(
-                    (Count("upvotes") + Count("downvotes")) + (0.5 * Count("children"))
+    def filter_roots_by_tag(self, root_nodes, tag_name):
+        if tag_name:
+            if re.search(r"^([a-zA-Z]+)$", tag_name):
+                tag_name = tag_name.lower()
+                tag_object, _ = Tag.objects.get_or_create(name=tag_name)
+                return (root_nodes.filter(tags__name=tag_object.name), tag_object)
+        return (root_nodes, None)
+
+    def sort_roots(self, root_nodes, sorting):
+        # If entries are sorted by hotness, filter entries from last 6 hours
+        # Also annotate 'hotness' by a simple formula (count of upvotes + count of downvotes + 0.5 * count of children)
+        if sorting == "hot":
+            root_nodes = (
+                root_nodes.filter(created_date__gte=timezone.now() - timedelta(hours=6))
+                .annotate(
+                    hotness=(
+                        (Count("upvotes") + Count("downvotes")) + (0.5 * Count("children"))
+                    )
                 )
+                .order_by("-hotness")
             )
-            .order_by("-hotness")
+        # Top sorting sorts descending by subtracting root's downvotes from upvotes
+        elif sorting == "top":
+            root_nodes = root_nodes.annotate(
+                overall_votes=(Count("upvotes") - Count("downvotes"))
+            ).order_by("-overall_votes")
+        return root_nodes
+
+    def filter_roots_by_blacklist(self, request, root_nodes):
+        return root_nodes.exclude(
+                Q(tags__blacklisters=request.user) & ~Q(user=request.user)
+            )
+
+    def rebuild_tree(self, request, root_nodes):
+        # To make pagination possible we need to paginate root nodes only.
+        # Then we need to replace default object_list in the paginator queryset
+        # with a new quryset with rebuilt trees
+        paginator = Paginator(root_nodes, settings.PAGINATE_ENTRIES_BY)
+        page = request.GET.get("page")
+        queryset = []
+        try:
+            queryset = paginator.page(page)
+        except PageNotAnInteger:
+            queryset = paginator.page(1)
+        except EmptyPage:
+            queryset = paginator.page(paginator.num_pages)
+        new_queryset = []
+        for node in queryset.object_list:
+            new_queryset.append(node)
+            for descendant in node.get_descendants():
+                # Hide entries with level higher or equal to 9
+                # and mark parents that they have hidden children
+                if descendant.level >= 9:
+                    if descendant.level == 9:
+                        new_queryset[-1].has_hidden_children = True
+                    continue
+                new_queryset.append(descendant)
+        queryset.object_list = new_queryset
+        return queryset
+
+    def get(self, request, sorting=None, tag=None):
+        root_nodes = Entry.objects.root_nodes()
+        tag_object = None
+        root_nodes, tag_object = self.filter_roots_by_tag(root_nodes, tag)
+        root_nodes = self.sort_roots(root_nodes, sorting)
+        if not tag and request.user.is_authenticated:
+            root_nodes = self.filter_roots_by_blacklist(request, root_nodes)
+        queryset = self.rebuild_tree(request, root_nodes)
+        return render(
+            request, "app/home.html", {"entries": queryset, "browsed_tag": tag_object}
         )
-    # Top sorting sorts descending by subtracting root's downvotes from upvotes
-    elif sorting == "top":
-        root_nodes = root_nodes.annotate(
-            overall_votes=(Count("upvotes") - Count("downvotes"))
-        ).order_by("-overall_votes")
-    # Filter root nodes by blacklisted tags
-    if not tag and request.user.is_authenticated:
-        root_nodes = root_nodes.exclude(
-            Q(tags__blacklisters=request.user) & ~Q(user=request.user)
-        )
-    # To make pagination possible we need to paginate root nodes only.
-    # Then we need to replace default object_list in the paginator queryset
-    # with a new quryset with rebuilt trees
-    paginator = Paginator(root_nodes, settings.PAGINATE_ENTRIES_BY)
-    page = request.GET.get("page")
-    queryset = []
-    try:
-        queryset = paginator.page(page)
-    except PageNotAnInteger:
-        queryset = paginator.page(1)
-    except EmptyPage:
-        queryset = paginator.page(paginator.num_pages)
-    new_queryset = []
-    for node in queryset.object_list:
-        new_queryset.append(node)
-        for descendant in node.get_descendants():
-            # Hide entries with level higher or equal to 9
-            # and mark parents that they have hidden children
-            if descendant.level >= 9:
-                if descendant.level == 9:
-                    new_queryset[-1].has_hidden_children = True
-                continue
-            new_queryset.append(descendant)
-    queryset.object_list = new_queryset
-    return render(
-        request, "app/home.html", {"entries": queryset, "browsed_tag": tag_object}
-    )

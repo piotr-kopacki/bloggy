@@ -35,10 +35,10 @@ class NotificationAPIViewTestCase(APITestCase):
         url = reverse("notifications-detail", kwargs={'pk': 1})
         data = {'read': True}
         response = self.client.patch(url, data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         data = {'read': False}
         response = self.client.patch(url, data)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_allow_authenticated_users_only(self):
         url = reverse("notifications-list")
@@ -70,12 +70,14 @@ class EntryAPIViewTestCase(APITestCase):
 
     def test_deleted_entry_content(self):
         user = User.objects.create(username="TestUser")
-        entry = Entry.objects.create(pk=1, content="test", user=user, deleted=True)
+        entry = Entry.objects.create(pk=1, content="test", user=user)
+        Entry.objects.create(parent=entry, content="test", user=user)
+        entry.delete()
         self.client.force_authenticate(user=user)
         url = reverse("entry-detail", kwargs={"pk": 1})
         response = self.client.get(url)
-        self.assertEqual(response.data["content"], "deleted")
-        self.assertEqual(response.data["content_formatted"], "<em>deleted</em>")
+        self.assertEqual(response.data["content"], "<p><em>deleted</em></p>")
+        self.assertEqual(response.data["content_formatted"], "<p><em>deleted</em></p>")
 
     def test_allow_post_when_owner_only(self):
         user = User.objects.create(username="TestUser")

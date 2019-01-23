@@ -65,6 +65,7 @@ def entry_tag_notification(instance, action, **kwargs):
         all_blacklisters = [
             blacklister for tag in all_tags for blacklister in tag.blacklisters.all()
         ]
+        to_create = []
         for tag in all_tags:
             for observer in tag.observers.all():
                 # If user blacklisted one of the tags in an entry, don't notify him.
@@ -80,11 +81,12 @@ def entry_tag_notification(instance, action, **kwargs):
                     f'<a href="{reversed_user}">{instance.user.username}</a> used tag <a href="{reversed_tag}">#{tag.name}</a>'
                     f' in <a href="{reversed_entry}">"{instance.content:.25}..."</a>'
                 )
-                Notification.objects.create(
+                to_create.append(Notification(
                     type="tag_used",
                     sender=instance.user,
                     target=observer,
                     object=instance,
                     content=content,
-                )
+                ))
                 already_notified.add(observer)
+        Notification.objects.bulk_create(to_create)

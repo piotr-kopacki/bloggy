@@ -13,11 +13,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from allauth.account.views import (EmailView, LoginView, LogoutView,
-                                   PasswordResetDoneView,
-                                   PasswordResetFromKeyDoneView,
-                                   PasswordResetFromKeyView, PasswordResetView,
-                                   SignupView)
+from allauth.account.views import (
+    LoginView,
+    LogoutView,
+    PasswordResetDoneView,
+    PasswordResetFromKeyDoneView,
+    PasswordResetFromKeyView,
+    PasswordResetView,
+    SignupView,
+)
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.decorators import user_passes_test
@@ -32,59 +36,28 @@ urlpatterns = [
     path("api-v1/", include(router.urls)),
     path("api-auth/", include("rest_auth.urls")),
     path("api-auth/registration/", include("rest_auth.registration.urls")),
+    path("signup/", SignupView.as_view(), name="account_signup"),
+    path("login/", logged_users_redirect(LoginView.as_view()), name="account_login"),
+    path("logout/", LogoutView.as_view(), name="account_logout"),
     path(
-        "users/signup",
-        SignupView.as_view(template_name="registration/signup.html"),
-        name="account_signup",
-    ),
-    path(
-        "users/login",
-        logged_users_redirect(
-            LoginView.as_view(template_name="registration/login.html")
-        ),
-        name="account_login",
-    ),
-    path(
-        "users/logout",
-        LogoutView.as_view(template_name="registration/logout.html"),
-        name="account_logout",
-    ),
-    path(
-        "users/reset",
-        logged_users_redirect(
-            PasswordResetView.as_view(
-                template_name="registration/password_reset_form.html"
-            )
-        ),
+        "password/reset/",
+        logged_users_redirect(PasswordResetView.as_view()),
         name="account_reset_password",
     ),
     url(
         r"^users/password/reset/key/(?P<uidb36>[0-9A-Za-z]+)-(?P<key>.+)/$",
-        logged_users_redirect(
-            PasswordResetFromKeyView.as_view(
-                template_name="registration/password_reset_confirm.html"
-            )
-        ),
+        logged_users_redirect(PasswordResetFromKeyView.as_view()),
         name="account_reset_password_from_key",
     ),
     path(
-        "users/reset/key/done",
-        logged_users_redirect(
-            PasswordResetFromKeyDoneView.as_view(
-                template_name="registration/password_reset_complete.html"
-            )
-        ),
+        "password/reset/key/done/",
+        logged_users_redirect(PasswordResetFromKeyDoneView.as_view()),
         name="account_reset_password_from_key_done",
     ),
     path(
-        "users/reset/done/",
-        logged_users_redirect(
-            PasswordResetDoneView.as_view(
-                template_name="registration/password_reset_done.html"
-            )
-        ),
+        "password/reset/done/",
+        logged_users_redirect(PasswordResetDoneView.as_view()),
         name="account_reset_password_done",
     ),
-    # path('users/email', EmailView.as_view(), name="account_email"),
     path("admin/", admin.site.urls),
 ]
