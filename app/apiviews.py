@@ -143,9 +143,27 @@ class PrivateMessageViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, target=target)
 
     def get_queryset(self):
-        return PrivateMessage.objects.filter(
-            Q(author=self.request.user) | Q(target=self.request.user)
-        ).order_by('-created_date')
+        """
+        API accepts two parameters:
+        ::read - if false, will return messages to user that are not read
+        ::from - if set to valid user will return messages from that user
+        """
+        private_messages = PrivateMessage.objects.filter(Q(author=self.request.user) | Q(target=self.request.user))
+        q_read = self.request.query_params.get('read', None)
+        if q_read:
+            q_read = q_read.lower()
+            if q_read == "false":
+                private_messages = private_messages.filter(target=self.request.user).filter(read=False)
+            elif q_read == "true":
+                private_messages = private_messages.filter(target=self.request.user).filter(read=True)
+        q_from = self.request.query_params.get('from', None)
+        if q_from:
+            try:
+                author = User.objects.get(username=q_from)
+                private_messages = private_messages.filter(author=author)
+            except ObjectDoesNotExist:
+                pass
+        return private_messages.order_by('-created_date')
 
 
 class EntryViewSet(viewsets.ModelViewSet):

@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Entry, Notification, Tag, User
+from .models import Entry, Notification, Tag, User, PrivateMessage
 
 MARKDOWN_SAMPLE = """# hello, This is Markdown Live Preview
 ----
@@ -26,17 +26,78 @@ see [Wikipedia](http://en.wikipedia.org/wiki/Markdown)
 """
 
 
+class PrivateMessageAPIViewTestCase(APITestCase):
+    def setUp(self):
+        User.objects.create(username="TestUser1", email="test1@email.com")
+        User.objects.create(username="TestUser2", email="test2@email.com")
+
+    def test_user_cant_message_himself(self):
+        """Ensure that users cannot message themselves"""
+        user = User.objects.get(username="TestUser1")
+        self.client.force_authenticate(user)
+        url = reverse("privatemessages-list")
+        data = {"target": user.username, "text": "Test private message"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_author_cannot_change_read_attribute(self):
+        """Ensure that author of a PM cant 'read' message for target"""
+        user = User.objects.get(username="TestUser1")
+        user2 = User.objects.get(username="TestUser2")
+        self.client.force_authenticate(user)
+        url = reverse("privatemessages-list")
+        data = {"target": user2.username, "text": "Test private message"}
+        response = self.client.post(url, data, format="json")
+        url = reverse("privatemessages-read", kwargs={"pk": response.data["id"]})
+        self.client.post(url)
+        self.client.force_authenticate(user2)
+        url = reverse("privatemessages-detail", kwargs={"pk": response.data["id"]})
+        response = self.client.get(url)
+        self.assertEqual(response.data["read"], False)
+
+    def test_text_cannot_be_empty(self):
+        """Ensure that user can't send empty PM"""
+        user = User.objects.get(username="TestUser1")
+        user2 = User.objects.get(username="TestUser2")
+        self.client.force_authenticate(user)
+        url = reverse("privatemessages-list")
+        data = {"target": user2.username, "text": ""}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_send_to_user_that_exists(self):
+        """Ensure that target user must exist when sending PM"""
+        user = User.objects.get(username="TestUser1")
+        self.client.force_authenticate(user)
+        url = reverse("privatemessages-list")
+        data = {"target": "userDoesntExist", "text": "Test private message"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_read_attribute_for_author(self):
+        """Ensure that, for PM author, the 'read' attribute is always True"""
+        user = User.objects.get(username="TestUser1")
+        user2 = User.objects.get(username="TestUser2")
+        self.client.force_authenticate(user)
+        url = reverse("privatemessages-list")
+        data = {"target": user2.username, "text": "Test private message"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.data["read"], True)
+
+
 class NotificationAPIViewTestCase(APITestCase):
     def test_disallow_read_false(self):
         u = User.objects.create(username="TestUser")
         e = Entry.objects.create(pk=1, content="test", user=u, deleted=True)
-        n = Notification.objects.create(pk=1, type='user_replied', sender=u, object=e, target=u)
+        n = Notification.objects.create(
+            pk=1, type="user_replied", sender=u, object=e, target=u
+        )
         self.client.force_authenticate(user=u)
-        url = reverse("notifications-detail", kwargs={'pk': 1})
-        data = {'read': True}
+        url = reverse("notifications-detail", kwargs={"pk": 1})
+        data = {"read": True}
         response = self.client.patch(url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        data = {'read': False}
+        data = {"read": False}
         response = self.client.patch(url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -49,11 +110,13 @@ class NotificationAPIViewTestCase(APITestCase):
         u = User.objects.create(username="TestUser")
         u2 = User.objects.create(username="TestUser2", email="email")
         e = Entry.objects.create(pk=1, content="test", user=u, deleted=True)
-        n = Notification.objects.create(type='user_replied', sender=u, object=e, target=u2)
+        n = Notification.objects.create(
+            type="user_replied", sender=u, object=e, target=u2
+        )
         self.client.force_authenticate(user=u)
         url = reverse("notifications-list")
         response = self.client.get(url)
-        self.assertEqual(len(response.data['results']), 0)
+        self.assertEqual(len(response.data["results"]), 0)
 
 
 class EntryAPIViewTestCase(APITestCase):
@@ -97,7 +160,7 @@ class EntryAPIViewTestCase(APITestCase):
         url = reverse("entry-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        url = reverse("entry-detail", kwargs={'pk': 1})
+        url = reverse("entry-detail", kwargs={"pk": 1})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -189,34 +252,56 @@ class VoteViewSetTestCase(APITestCase):
 
 class TagTestCase(TestCase):
     def setUp(self):
-        self.u  = User.objects.create(username="TestUser", email="testuser@testuser.testuser")
-        self.u2 = User.objects.create(username="TestUser2", email="testuse2r@testuser2.testuser2")
-        self.u3 = User.objects.create(username="TestUser3", email="testuser3@testuser3.testuser3")
-        self.t  = Tag.objects.create(name="testtag")
+        self.u = User.objects.create(
+            username="TestUser", email="testuser@testuser.testuser"
+        )
+        self.u2 = User.objects.create(
+            username="TestUser2", email="testuse2r@testuser2.testuser2"
+        )
+        self.u3 = User.objects.create(
+            username="TestUser3", email="testuser3@testuser3.testuser3"
+        )
+        self.t = Tag.objects.create(name="testtag")
         self.t2 = Tag.objects.create(name="testtag2")
         self.t.observers.add(self.u)
         self.t.observers.add(self.u2)
         self.t2.observers.add(self.u3)
-        
+
     def test_notification_creation(self):
-        Entry.objects.create(user=self.u, content="#testtag#this shouldn't create notifications")
+        Entry.objects.create(
+            user=self.u, content="#testtag#this shouldn't create notifications"
+        )
         self.assertFalse(Notification.objects.all().exists())
-        Entry.objects.create(user=self.u, content="#testtag this should create 1 notification")
+        Entry.objects.create(
+            user=self.u, content="#testtag this should create 1 notification"
+        )
         self.assertEqual(Notification.objects.all().count(), 1)
-        Entry.objects.create(user=self.u2, content="#testtag this #should_ create 1 notification")
+        Entry.objects.create(
+            user=self.u2, content="#testtag this #should_ create 1 notification"
+        )
         self.assertEqual(Notification.objects.all().count(), 2)
-        Entry.objects.create(user=self.u3, content="#testtag this should create 2 notifications")
+        Entry.objects.create(
+            user=self.u3, content="#testtag this should create 2 notifications"
+        )
         self.assertEqual(Notification.objects.all().count(), 4)
         Entry.objects.all().update(content="#this #should #not #create #notifications!")
         self.assertEqual(Notification.objects.all().count(), 4)
 
     def test_tag_creation(self):
-        Entry.objects.create(user=self.u, content="#testtagthree this should create 1 tag")
+        Entry.objects.create(
+            user=self.u, content="#testtagthree this should create 1 tag"
+        )
         self.assertEqual(Tag.objects.all().count(), 3)
-        Entry.objects.create(user=self.u, content="#testTAGthree this shouldn't create a tag")
-        Entry.objects.create(user=self.u, content="#testtag#this shouldn't create a tag")
+        Entry.objects.create(
+            user=self.u, content="#testTAGthree this shouldn't create a tag"
+        )
+        Entry.objects.create(
+            user=self.u, content="#testtag#this shouldn't create a tag"
+        )
         self.assertEqual(Tag.objects.all().count(), 3)
-        Entry.objects.create(user=self.u, content="#testtag #testtagfourth should create 1 tag")
+        Entry.objects.create(
+            user=self.u, content="#testtag #testtagfourth should create 1 tag"
+        )
         self.assertEqual(Tag.objects.all().count(), 4)
 
 
