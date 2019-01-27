@@ -243,6 +243,9 @@ class Entry(MPTTModel):
         self.format_content()
         # Call save before accessing tags field to avoid errors
         super().save(*args, **kwargs)
+        # By default, entry is upvoted by it's author when it's first created
+        if created:
+            self.upvotes.add(self.user)
         # Clear tags so if user deletes a tag from content it won't appear.
         self.tags.clear()
         tags_to_add = [Tag.objects.get_or_create(name=tag_name)[0] for tag_name in self.get_tags]
@@ -303,7 +306,7 @@ class Entry(MPTTModel):
         Returns list of tag names in content of entry
         """
         p = r"(\W|^)(#)([a-zA-Z]+\b)(?![a-zA-Z_#])"
-        return list(set([f[2].lower() for f in re.findall(p, self.content)]))
+        return list({f[2].lower() for f in re.findall(p, self.content)})
 
 
     def parent_formatted(self):

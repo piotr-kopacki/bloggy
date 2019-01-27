@@ -116,8 +116,13 @@ body > * {
   display: block !important;
 }
 
+.entry-points {
+  font-size: 12px;
+}
+
 .usernode {
-  border-left: 1px solid rgba(8, 189, 147, 0.666);
+  /* border-left: 1px solid rgba(8, 189, 147, 0.666); */
+  border-left: 1px solid rgba(218, 44, 215, 0.673);
 }
 
 .usernode p{

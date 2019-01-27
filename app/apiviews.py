@@ -179,6 +179,30 @@ class EntryViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    @action(detail=True, methods=['post'])
+    def upvote(self, request, pk=None):
+        entry = self.get_object()
+        if request.user in entry.downvotes.all():
+            entry.downvotes.remove(request.user)
+        if request.user in entry.upvotes.all():
+            entry.upvotes.remove(request.user)
+        else:
+            entry.upvotes.add(request.user)
+        serializer = self.get_serializer(entry)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def downvote(self, request, pk=None):
+        entry = self.get_object()
+        if request.user in entry.upvotes.all():
+            entry.upvotes.remove(request.user)
+        if request.user in entry.downvotes.all():
+            entry.downvotes.remove(request.user)
+        else:
+            entry.downvotes.add(request.user)
+        serializer = self.get_serializer(entry)
+        return Response(serializer.data)
+
     def list(self, request):
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
@@ -198,47 +222,3 @@ class EntryViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(entry, many=False, context=context)
         return Response(serializer.data)
 
-
-class VoteViewSet(viewsets.ViewSet):
-    """
-    View to vote for an entry
-
-    Required data:
-        pk - primary key of an entry
-        votetype - 'upvote' or 'downvote'
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def create(self, request):
-        context = {"request": self.request}
-        pk = request.data.get("pk")
-        votetype = request.data.get("votetype")
-        if not pk:
-            return Response(
-                {"detail": "Provide pk"}, status=status.HTTP_400_BAD_REQUEST
-            )
-        if not votetype or votetype not in ["upvote", "downvote"]:
-            return Response(
-                {"detail": "Provide votetype"}, status=status.HTTP_400_BAD_REQUEST
-            )
-        entry = get_object_or_404(Entry, pk=pk)
-        if votetype == "upvote":
-            if request.user in entry.downvotes.all():
-                entry.downvotes.remove(request.user)
-            if request.user in entry.upvotes.all():
-                entry.upvotes.remove(request.user)
-            else:
-                entry.upvotes.add(request.user)
-            return Response(EntrySerializer(entry, context=context).data)
-        else:
-            if request.user in entry.upvotes.all():
-                entry.upvotes.remove(request.user)
-            if request.user in entry.downvotes.all():
-                entry.downvotes.remove(request.user)
-            else:
-                entry.downvotes.add(request.user)
-            return Response(EntrySerializer(entry, context=context).data)
-
-    def get_serializer_context(self):
-        return {"request": self.request}

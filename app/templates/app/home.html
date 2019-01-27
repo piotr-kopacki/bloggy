@@ -61,13 +61,11 @@
             <p style="margin-bottom: 1px">
                 <a href="{% url 'user-detail-view' node.user.username %}" style="margin-left: 5px; font-size: 14px;"><strong>{{node.user.username }}</strong></a>
                 <em><a href="{% url 'entry-detail-view' node.pk %}" style="font-size: 12px;">{{node.created_date|naturaltime }}</a></em>
-                <strong class="node" id="votes{{node.pk}}">{{ node.votes_sum }}</strong>
+                <strong class="entry-points" data-id="{{node.pk}}">{{ node.votes_sum }}</strong>
                 {% if user.is_authenticated %}
                 {% if not node.deleted %}
-                <button class="upvote {% if user in node.upvotes.all %}user-upvoted{% endif %}" type="upvote" onclick="vote({{node.pk}}, 'upvote')"
-                    id="upvote{{node.pk}}">&#43;</button>
-                <button class="downvote {% if user in node.downvotes.all %}user-downvoted{% endif %}" type="downvote" onclick="vote({{node.pk}}, 'downvote')"
-                    id="downvote{{node.pk}}">&#8722;</button>
+                <button class="upvote {% if user in node.upvotes.all %}user-upvoted{% endif %}" data-id="{{node.pk}}">&#43;</button>
+                <button class="downvote {% if user in node.downvotes.all %}user-downvoted{% endif %}" data-id="{{node.pk}}">&#8722;</button>
                 {% endif %}
                 <a href="#" class="answerButton" value="{{node.pk}}" style="font-size: 12px">answer</a>
                 {% if node.user.pk == user.pk and not node.deleted %}
@@ -130,7 +128,8 @@
 
 {% block extra-scripts %}
 <script>
-    function vote(pk, type) {
+    $(document).on('click', '.upvote', function (e) {
+        e.preventDefault();
         $.ajaxSetup({
             beforeSend: function (xhr, settings) {
                 if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -138,27 +137,47 @@
                 }
             }
         });
-        $.post("{% url 'vote-list' %}",
-            {
-                pk: pk,
-                votetype: type
-            },
-            function (data, status) {
-                if (status === "success")
-                    document.getElementById("upvote" + data.id).classList.remove('user-upvoted');
-                document.getElementById("downvote" + data.id).classList.remove('user-downvoted');
-                document.getElementById("votes" + data.id).innerHTML = data.upvotes - data.downvotes;
-                if (data.user_upvoted) {
-                    document.getElementById("upvote" + data.id).classList.add('user-upvoted');
-                } else if (data.user_downvoted) {
-                    document.getElementById("downvote" + data.id).classList.add('user-downvoted');
+        $.ajax({
+            url: "{% url 'entry-list' %}" + e.target.dataset['id'] + "/upvote/",
+            type: 'POST',
+            success: function (data) {
+                $(`.downvote[data-id='${data.id}']`).removeClass("user-downvoted")
+                if(data['user_upvoted']){
+                    e.target.classList.add("user-upvoted")       
+                } else {
+                    e.target.classList.remove("user-upvoted")
                 }
-            });
-    }
+                $(`.entry-points[data-id='${data.id}']`)[0].innerHTML = data.upvotes - data.downvotes
+            },
+        });
+    });
+    $(document).on('click', '.downvote', function (e) {
+        e.preventDefault();
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        $.ajax({
+            url: "{% url 'entry-list' %}" + e.target.dataset['id'] + "/downvote/",
+            type: 'POST',
+            success: function (data) {
+                $(`.upvote[data-id='${data.id}']`).removeClass("user-upvoted")
+                if(data['user_downvoted']){
+                    e.target.classList.add("user-downvoted")
+                } else {
+                    e.target.classList.remove("user-downvoted")
+                }
+                $(`.entry-points[data-id='${data.id}']`)[0].innerHTML = data.upvotes - data.downvotes
+            },
+        });
+    });
     $(document).on('click', ".answerButton", function (e) {
         e.preventDefault();
         $(".editForm").hide();
-        $(".content").show();
+        $("#content" + $(this).attr('value')).show();
         if ($("#form" + $(this).attr('value')).is(':visible')) {
             $(".commentForm").hide();
         } else {

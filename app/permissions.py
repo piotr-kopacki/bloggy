@@ -38,7 +38,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     message = "Not an owner."
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS or view.action in ['upvote', 'downvote']:
             return True
         return request.user == obj.user
 
