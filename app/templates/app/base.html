@@ -318,11 +318,11 @@
                                     <div class="notification {% if not notification.read %}notification-unread{% endif %}" id="{{notification.id}}">
                                         <li>
                                             {% if notification.type == 'user_mentioned' %}
-                                            <a href="{% url 'user-detail-view' notification.sender.username %}">{{notification.sender.username }}</a> has mentioned you in his entry <a
+                                            <a href="{% url 'user-detail-view' notification.sender.display_name %}">{{notification.sender.display_name }}</a> has mentioned you in his entry <a
                                                 href="{% url 'entry-detail-view' notification.object.pk %}">'{{notification.object.content|truncatechars:25 }}'</a>
                                             {% endif %}
                                             {% if notification.type == 'user_replied' %}
-                                            <a href="{% url 'user-detail-view' notification.sender.username %}">{{notification.sender.username }}</a> has replied to you <a href="{% url 'entry-detail-view' notification.object.pk %}">'{{notification.object.content|truncatechars:25 }}'</a>
+                                            <a href="{% url 'user-detail-view' notification.sender.display_name %}">{{notification.sender.display_name }}</a> has replied to you <a href="{% url 'entry-detail-view' notification.object.pk %}">'{{notification.object.content|truncatechars:25 }}'</a>
                                             {% endif %}
                                             {% if notification.type == 'tag_used' %}
                                             {{ notification.content|safe }}
@@ -347,10 +347,10 @@
             <div class="dropdown show">
                 <a style="color: white;" class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {{ user.username }}
+                    {{ user.display_name }}
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
-                    <a class="dropdown-item" href="{% url 'user-detail-view' user.username %}">Profile</a>
+                    <a class="dropdown-item" href="{% url 'user-detail-view' user.display_name %}">Profile</a>
                     <a class="dropdown-item" href="{% url 'account_logout' %}">Logout</a>
                 </div>
             </div>

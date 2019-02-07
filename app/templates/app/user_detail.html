@@ -3,7 +3,7 @@
 {% block content-head %}
 {% load humanize %}
 <hr>
-<h4>{{ user_profile.username }}</h3>
+<h4>{{ user_profile.display_name }}</h3>
     <p>
         <time title="{{ user_profile.date_joined }}" datetime="{{ user_profile.date_joined }}">Joined: {{ user_profile.date_joined|naturaltime}}</time>
         <br>

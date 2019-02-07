@@ -77,29 +77,29 @@ class PrivateMessageView(LoginRequiredMixin, View):
             template_name = "app/inbox.html"
             unread_private_messages = (
                 PrivateMessage.objects.filter(Q(target=self.request.user))
-                .values("author__username")
+                .values("author__display_name")
                 .annotate(unread=Count("read", filter=Q(read=False)))
             )
             all_private_messages = list(
                 PrivateMessage.objects.filter(author=self.request.user)
-                .values("target__username")
+                .values("target__display_name")
                 .distinct()
             )
             to_add = []
             for unread_pm in unread_private_messages:
                 for pm in all_private_messages:
-                    if pm["target__username"] == unread_pm["author__username"]:
+                    if pm["target__display_name"] == unread_pm["author__display_name"]:
                         pm["unread"] = unread_pm["unread"]
                         break
                 else:
                     to_add.append(
                         {
-                            "target__username": unread_pm["author__username"],
+                            "target__display_name": unread_pm["author__display_name"],
                             "unread": unread_pm["unread"],
                         }
                     )
             context["all_conversations"] = sorted(
-                all_private_messages + to_add, key=lambda p: p["target__username"]
+                all_private_messages + to_add, key=lambda p: p["target__display_name"]
             )
         return render(request, template_name, context)
 

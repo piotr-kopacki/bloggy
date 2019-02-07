@@ -8,7 +8,7 @@
 <div class="conversationBox" id="conversationBox">
     {% for message in conversation %}
     <div class="conversationMessage">
-        <small><a href="{% url 'user-detail-view' message.author.username %}">{{ message.author }}</a></small>
+        <small><a href="{% url 'user-detail-view' message.author.username %}">{{ message.author.display_name }}</a></small>
         <small>{{ message.created_date|naturaltime }}</small>
         <p>{{message.text|safe }}</p>
     </div>
