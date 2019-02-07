@@ -13,6 +13,7 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+AUTHENTICATION_BACKENDS = ('app.backends.CaseInsensitiveModelBackend', )
 
 INSTALLED_APPS = [
     'app.apps.AppConfig',

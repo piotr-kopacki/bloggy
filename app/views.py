@@ -16,7 +16,23 @@ from django.views import View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
+from .forms import SignUpForm
 from .models import Entry, Notification, PrivateMessage, Tag, User
+
+
+class SignUpView(View):
+    def post(self, request):
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            new_user = form.save()
+            user = authenticate(username=new_user.username, password=form.cleaned_data.get('password1'))
+            login(request, user)
+            return redirect('home')
+        return render(request, 'account/signup.html', {'form': form})
+    
+    def get(self, request):
+        form = SignUpForm()
+        return render(request, 'account/signup.html', {'form': form})
 
 
 class NotificationListView(LoginRequiredMixin, ListView):
@@ -41,6 +57,8 @@ class PrivateMessageView(LoginRequiredMixin, View):
         """
         template_name = self.template_name
         context = {}
+        if target:
+            target = target.lower()
         if target and target != self.request.user.username:
             target = get_object_or_404(User, username=target)
             PrivateMessage.objects.filter(Q(target=self.request.user) & Q(author=target)).update(read=True, read_date=timezone.now())
@@ -139,6 +157,8 @@ class UserDetailView(DetailView):
         username = self.kwargs.get("username")
         if not username:
             return super().get_object(queryset)
+        else:
+            username = username.lower()
         queryset = queryset.filter(username=username)
         try:
             # Get the single item from the filtered queryset

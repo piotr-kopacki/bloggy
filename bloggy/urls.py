@@ -36,7 +36,7 @@ urlpatterns = [
     path("api-v1/", include(router.urls)),
     path("api-auth/", include("rest_auth.urls")),
     path("api-auth/registration/", include("rest_auth.registration.urls")),
-    path("signup/", SignupView.as_view(), name="account_signup"),
+    # path("signup/", SignupView.as_view(), name="account_signup"),
     path("login/", logged_users_redirect(LoginView.as_view()), name="account_login"),
     path("logout/", LogoutView.as_view(), name="account_logout"),
     path(

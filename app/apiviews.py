@@ -134,7 +134,7 @@ class PrivateMessageViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         try:
-            target = serializer.validated_data["target"]
+            target = serializer.validated_data["target"].lower()
             target = User.objects.get(username=target)
         except User.DoesNotExist:
             raise ValidationError("User with that username doesn't exist!")
@@ -159,7 +159,7 @@ class PrivateMessageViewSet(viewsets.ModelViewSet):
         q_from = self.request.query_params.get('from', None)
         if q_from:
             try:
-                author = User.objects.get(username=q_from)
+                author = User.objects.get(username=q_from.lower())
                 private_messages = private_messages.filter(author=author)
             except ObjectDoesNotExist:
                 pass

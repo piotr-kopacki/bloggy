@@ -18,7 +18,7 @@ def entry_notification(sender, instance, created, **kwargs):
         # First find usernames mentioned (by @ tag)
         p = re.compile(r"^(@)(\w+)$")
         usernames = set(
-            [p.match(c).group(2) for c in instance.content.split() if p.match(c)]
+            [p.match(c).group(2).lower() for c in instance.content.split() if p.match(c)]
         )
         # Remove the author of an entry from users to notify
         if instance.user.username in usernames:

@@ -21,6 +21,7 @@ class User(AbstractUser):
     """
 
     email = models.EmailField(null=False, unique=True, blank=False)
+    display_name = models.CharField(max_length=150, null=False, blank=True)
 
     EMAIL_FIELD = "email"
 

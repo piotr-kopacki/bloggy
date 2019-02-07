@@ -1,7 +1,10 @@
+from django.contrib.auth.decorators import user_passes_test
 from django.urls import path
 
 from .views import (EntryDetailView, HomeView, NotificationListView,
-                    PrivateMessageView, UserDetailView, UserRankingView)
+                    PrivateMessageView, UserDetailView, UserRankingView, SignUpView)
+
+logged_users_redirect = user_passes_test(lambda u: u.is_anonymous, "/")
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
@@ -14,4 +17,5 @@ urlpatterns = [
     path("inbox/", PrivateMessageView.as_view(), name="inbox"),
     path("inbox/user/<str:target>/", PrivateMessageView.as_view(), name="inbox-user-view"),
     path("users/<str:username>/", UserDetailView.as_view(), name="user-detail-view"),
+    path("signup/", logged_users_redirect(SignUpView.as_view()), name='account_signup'),
 ]
