@@ -28,12 +28,12 @@ see [Wikipedia](http://en.wikipedia.org/wiki/Markdown)
 
 class PrivateMessageAPIViewTestCase(APITestCase):
     def setUp(self):
-        User.objects.create(username="TestUser1", email="test1@email.com")
-        User.objects.create(username="TestUser2", email="test2@email.com")
+        User.objects.create(username="testuser1", email="test1@email.com")
+        User.objects.create(username="testuser2", email="test2@email.com")
 
     def test_user_cant_message_himself(self):
         """Ensure that users cannot message themselves"""
-        user = User.objects.get(username="TestUser1")
+        user = User.objects.get(username="testuser1")
         self.client.force_authenticate(user)
         url = reverse("privatemessages-list")
         data = {"target": user.username, "text": "Test private message"}
@@ -42,8 +42,8 @@ class PrivateMessageAPIViewTestCase(APITestCase):
 
     def test_author_cannot_change_read_attribute(self):
         """Ensure that author of a PM cant 'read' message for target"""
-        user = User.objects.get(username="TestUser1")
-        user2 = User.objects.get(username="TestUser2")
+        user = User.objects.get(username="testuser1")
+        user2 = User.objects.get(username="testuser2")
         self.client.force_authenticate(user)
         url = reverse("privatemessages-list")
         data = {"target": user2.username, "text": "Test private message"}
@@ -57,8 +57,8 @@ class PrivateMessageAPIViewTestCase(APITestCase):
 
     def test_text_cannot_be_empty(self):
         """Ensure that user can't send empty PM"""
-        user = User.objects.get(username="TestUser1")
-        user2 = User.objects.get(username="TestUser2")
+        user = User.objects.get(username="testuser1")
+        user2 = User.objects.get(username="testuser2")
         self.client.force_authenticate(user)
         url = reverse("privatemessages-list")
         data = {"target": user2.username, "text": ""}
@@ -67,7 +67,7 @@ class PrivateMessageAPIViewTestCase(APITestCase):
 
     def test_send_to_user_that_exists(self):
         """Ensure that target user must exist when sending PM"""
-        user = User.objects.get(username="TestUser1")
+        user = User.objects.get(username="testuser1")
         self.client.force_authenticate(user)
         url = reverse("privatemessages-list")
         data = {"target": "userDoesntExist", "text": "Test private message"}
@@ -76,8 +76,8 @@ class PrivateMessageAPIViewTestCase(APITestCase):
 
     def test_read_attribute_for_author(self):
         """Ensure that, for PM author, the 'read' attribute is always True"""
-        user = User.objects.get(username="TestUser1")
-        user2 = User.objects.get(username="TestUser2")
+        user = User.objects.get(username="testuser1")
+        user2 = User.objects.get(username="testuser2")
         self.client.force_authenticate(user)
         url = reverse("privatemessages-list")
         data = {"target": user2.username, "text": "Test private message"}
@@ -87,7 +87,7 @@ class PrivateMessageAPIViewTestCase(APITestCase):
 
 class NotificationAPIViewTestCase(APITestCase):
     def test_disallow_read_false(self):
-        u = User.objects.create(username="TestUser")
+        u = User.objects.create(username="testuser")
         e = Entry.objects.create(pk=1, content="test", user=u, deleted=True)
         n = Notification.objects.create(
             pk=1, type="user_replied", sender=u, object=e, target=u
@@ -107,8 +107,8 @@ class NotificationAPIViewTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_only_users_notifications(self):
-        u = User.objects.create(username="TestUser")
-        u2 = User.objects.create(username="TestUser2", email="email")
+        u = User.objects.create(username="testuser")
+        u2 = User.objects.create(username="testuser2", email="email")
         e = Entry.objects.create(pk=1, content="test", user=u, deleted=True)
         n = Notification.objects.create(
             type="user_replied", sender=u, object=e, target=u2
@@ -121,7 +121,7 @@ class NotificationAPIViewTestCase(APITestCase):
 
 class EntryAPIViewTestCase(APITestCase):
     def test_allow_get_only_when_deleted(self):
-        user = User.objects.create(username="TestUser")
+        user = User.objects.create(username="testuser")
         entry = Entry.objects.create(pk=1, content="test", user=user, deleted=True)
         self.client.force_authenticate(user=user)
         url = reverse("entry-detail", kwargs={"pk": 1})
@@ -132,7 +132,7 @@ class EntryAPIViewTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_deleted_entry_content(self):
-        user = User.objects.create(username="TestUser")
+        user = User.objects.create(username="testuser")
         entry = Entry.objects.create(pk=1, content="test", user=user)
         Entry.objects.create(parent=entry, content="test", user=user)
         entry.delete()
@@ -143,7 +143,7 @@ class EntryAPIViewTestCase(APITestCase):
         self.assertEqual(response.data["content_formatted"], "<p><em>deleted</em></p>")
 
     def test_allow_post_when_owner_only(self):
-        user = User.objects.create(username="TestUser")
+        user = User.objects.create(username="testuser")
         owner = User.objects.create(username="Owner", email="test@test.test")
         entry = Entry.objects.create(pk=1, content="test", user=owner)
         self.client.force_authenticate(user=user)
@@ -155,7 +155,7 @@ class EntryAPIViewTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_allow_authenticated_users_only(self):
-        user = User.objects.create(username="TestUser")
+        user = User.objects.create(username="testuser")
         entry = Entry.objects.create(pk=1, content="test", user=user)
         url = reverse("entry-list")
         response = self.client.get(url)
@@ -168,13 +168,13 @@ class EntryAPIViewTestCase(APITestCase):
 class TagTestCase(TestCase):
     def setUp(self):
         self.u = User.objects.create(
-            username="TestUser", email="testuser@testuser.testuser"
+            username="testuser", email="testuser@testuser.testuser"
         )
         self.u2 = User.objects.create(
-            username="TestUser2", email="testuse2r@testuser2.testuser2"
+            username="testuser2", email="testuse2r@testuser2.testuser2"
         )
         self.u3 = User.objects.create(
-            username="TestUser3", email="testuser3@testuser3.testuser3"
+            username="testuser3", email="testuser3@testuser3.testuser3"
         )
         self.t = Tag.objects.create(name="testtag")
         self.t2 = Tag.objects.create(name="testtag2")
@@ -222,7 +222,7 @@ class TagTestCase(TestCase):
 
 class EntryViewSetTestCase(TestCase):
     def test_soft_deletion(self):
-        u = User.objects.create(username="TestUser")
+        u = User.objects.create(username="testuser")
         e = Entry.objects.create(pk=1, user=u, content="test")
         e2 = Entry.objects.create(pk=2, user=u, content="test2", parent=e)
         e.delete()
@@ -231,7 +231,7 @@ class EntryViewSetTestCase(TestCase):
         self.assertTrue(e.deleted)
 
     def test_hard_deletion(self):
-        u = User.objects.create(username="TestUser")
+        u = User.objects.create(username="testuser")
         e = Entry.objects.create(pk=1, user=u, content="test")
         e2 = Entry.objects.create(pk=2, user=u, content="test2", parent=e)
         e2.delete()
@@ -245,7 +245,7 @@ class UserEntryTestCase(TestCase):
         Entry.objects.create(
             pk=1,
             user=User.objects.create(
-                pk=1, username="TestUser", email="test@test.test", password="Test1234"
+                pk=1, username="testuser", email="test@test.test", password="Test1234"
             ),
             content=MARKDOWN_SAMPLE,
         )
