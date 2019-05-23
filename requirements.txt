@@ -3,6 +3,6 @@ Markdown==3.0.1
 bleach_whitelist==0.0.9
 Django>=2.1.6
 django_mptt==0.9.1
-djangorestframework==3.9.0
+djangorestframework>=3.9.1
 django-allauth==0.38.0
 django-rest-auth==0.9.3
