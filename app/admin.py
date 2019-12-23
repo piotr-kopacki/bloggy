@@ -1,16 +1,8 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
-from django.urls import reverse
 
 from .models import Entry, Notification, PrivateMessage, Tag, User
-
-
-class UserCreateForm(UserCreationForm):
-    class Meta:
-        model = User
-        fields = ("username", "email")
+from .forms import UserChangeForm, UserCreationForm
 
 
 class EntryInLine(admin.TabularInline):
@@ -18,25 +10,22 @@ class EntryInLine(admin.TabularInline):
     extra = 0
 
 
+@admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    add_form = UserCreateForm
+    form = UserChangeForm
+    add_form = UserCreationForm
     inlines = [EntryInLine]
-    add_fieldsets = (
-        (
-            None,
-            {
-                "classes": ("wide",),
-                "fields": ("username", "email", "password1", "password2"),
-            },
-        ),
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'bio', 'photo')}),
+        ('Permissions', {'classes': ('collapse',), 'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'classes': ('collapse',), 'fields': ('last_login', 'date_joined')}),
     )
 
 
 class EntryAdmin(admin.ModelAdmin):
     list_display = ("__str__", "user_formatted", "parent_formatted", "created_date")
 
-
-admin.site.register(User, CustomUserAdmin)
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(Notification)
 admin.site.register(Tag)

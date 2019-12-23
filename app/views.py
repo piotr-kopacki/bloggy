@@ -2,13 +2,11 @@ import re
 from datetime import timedelta
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Count, Q
 from django.http import Http404
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -16,23 +14,7 @@ from django.views import View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
-from .forms import SignUpForm
 from .models import Entry, Notification, PrivateMessage, Tag, User
-
-
-class SignUpView(View):
-    def post(self, request):
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            new_user = form.save()
-            user = authenticate(username=new_user.username, password=form.cleaned_data.get('password1'))
-            login(request, user)
-            return redirect('home')
-        return render(request, 'account/signup.html', {'form': form})
-    
-    def get(self, request):
-        form = SignUpForm()
-        return render(request, 'account/signup.html', {'form': form})
 
 
 class NotificationListView(LoginRequiredMixin, ListView):
@@ -77,29 +59,29 @@ class PrivateMessageView(LoginRequiredMixin, View):
             template_name = "app/inbox.html"
             unread_private_messages = (
                 PrivateMessage.objects.filter(Q(target=self.request.user))
-                .values("author__display_name")
+                .values("author__username")
                 .annotate(unread=Count("read", filter=Q(read=False)))
             )
             all_private_messages = list(
                 PrivateMessage.objects.filter(author=self.request.user)
-                .values("target__display_name")
+                .values("target__username")
                 .distinct()
             )
             to_add = []
             for unread_pm in unread_private_messages:
                 for pm in all_private_messages:
-                    if pm["target__display_name"] == unread_pm["author__display_name"]:
+                    if pm["target__username"] == unread_pm["author__username"]:
                         pm["unread"] = unread_pm["unread"]
                         break
                 else:
                     to_add.append(
                         {
-                            "target__display_name": unread_pm["author__display_name"],
+                            "target__username": unread_pm["author__username"],
                             "unread": unread_pm["unread"],
                         }
                     )
             context["all_conversations"] = sorted(
-                all_private_messages + to_add, key=lambda p: p["target__display_name"]
+                all_private_messages + to_add, key=lambda p: p["target__username"]
             )
         return render(request, template_name, context)
 

@@ -11,7 +11,6 @@ DEBUG = bool(int(os.environ.get('DJANGO_DEBUG', 1)))
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 AUTHENTICATION_BACKENDS = ('app.backends.CaseInsensitiveModelBackend', )
 
@@ -23,33 +22,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.humanize', 
+    'django.contrib.humanize',
+    'django.contrib.sites',
+
     'mptt',
+
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
-    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'rest_auth.registration',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 15,
-}
-
-SERIALIZERS = {
-    'set_username': '',
-}
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -81,10 +68,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bloggy.wsgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -92,10 +76,7 @@ DATABASES = {
     }
 }
 
-
 # Password validation
-# https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -111,10 +92,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/2.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -125,10 +103,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.1/howto/static-files/
-
 STATIC_URL = '/static/'
 MEDIA_URL =  '/media/'
 
@@ -137,7 +112,6 @@ STATIC_ROOT = os.path.join(ENV_PATH, '../public/static/') if not DEBUG else None
 MEDIA_ROOT = os.path.join(ENV_PATH, '../public/media/') if not DEBUG else None
 
 # Django auth settings
-
 AUTH_USER_MODEL = 'app.User'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = True
@@ -148,18 +122,30 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
-SITE_ID = 1
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 SECURE_SSL_REDIRECT = True if not DEBUG else False
 
 # Custom bleach whitelist
-
 MARKDOWN_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'b', 'i', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'strong', 'em', 'tt', 'p', 'pre', 'br', 'span', 'blockquote', 'code', 'ul', 'ol', 'li', 'dd', 'dt', 'a', 'lt', 'gt']
 MARKDOWN_ATTRS = {'a': ['href', 'alt', 'title'], 'code': ['class']}
 
-
 # bloggy custom settings
-
 PAGINATE_ENTRIES_BY = 15
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 15,
+}
+
+SERIALIZERS = {
+    'set_username': '',
+}

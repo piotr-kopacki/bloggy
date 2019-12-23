@@ -17,13 +17,9 @@ from mptt.models import MPTTModel, TreeForeignKey
 class User(AbstractUser):
     """
     Custom user model to use in the future.
-    Email is required to create an User.
     """
-
-    email = models.EmailField(null=False, unique=True, blank=False)
-    display_name = models.CharField(max_length=150, null=False, blank=True)
-
-    EMAIL_FIELD = "email"
+    bio = models.TextField(max_length=255, blank=True)
+    photo = models.ImageField(upload_to='avatars', blank=True)
 
     @cached_property
     def points(self):

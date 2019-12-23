@@ -9,8 +9,8 @@
     <div class="allConversations" id="allConversations">
         {% for conversation in all_conversations %}
         <div class="conversationSnippet" id="conversationSnippet">
-            <a href="{% url 'inbox-user-view' conversation.target__display_name|lower %}">
-                {{ conversation.target__display_name }}
+            <a href="{% url 'inbox-user-view' conversation.target__username|lower %}">
+                {{ conversation.target__username }}
                 {% if conversation.unread > 0 %}
                 <span class="badge badge-pill badge-primary" id="private-messages-from-unread-count">{{ conversation.unread }}</span>
                 {% endif %}

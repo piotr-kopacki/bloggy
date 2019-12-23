@@ -59,7 +59,7 @@
         <div class="entryBox">
             <a class="entry-anchor" id="{{ node.pk }}"></a>
             <p style="margin-bottom: 1px">
-                <a href="{% url 'user-detail-view' node.user.username %}" style="margin-left: 5px; font-size: 14px;"><strong>{{node.user.display_name }}</strong></a>
+                <a href="{% url 'user-detail-view' node.user.username %}" style="margin-left: 5px; font-size: 14px;"><strong>{{node.user.username }}</strong></a>
                 <em><a href="{% url 'entry-detail-view' node.pk %}" style="font-size: 12px;">{{node.created_date|naturaltime }}</a></em>
                 <strong class="entry-points" data-id="{{node.pk}}">{{ node.votes_sum }}</strong>
                 {% if user.is_authenticated %}
