@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Count, Q
 from django.http import Http404
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -25,14 +25,16 @@ class SignUpView(View):
         form = SignUpForm(request.POST)
         if form.is_valid():
             new_user = form.save()
-            user = authenticate(username=new_user.username, password=form.cleaned_data.get('password1'))
+            user = authenticate(
+                username=new_user.username, password=form.cleaned_data.get("password1")
+            )
             login(request, user)
-            return redirect('home')
-        return render(request, 'account/signup.html', {'form': form})
-    
+            return redirect("home")
+        return render(request, "account/signup.html", {"form": form})
+
     def get(self, request):
         form = SignUpForm()
-        return render(request, 'account/signup.html', {'form': form})
+        return render(request, "account/signup.html", {"form": form})
 
 
 class NotificationListView(LoginRequiredMixin, ListView):
@@ -61,12 +63,14 @@ class PrivateMessageView(LoginRequiredMixin, View):
             target = target.lower()
         if target and target != self.request.user.username:
             target = get_object_or_404(User, username=target)
-            PrivateMessage.objects.filter(Q(target=self.request.user) & Q(author=target)).update(read=True, read_date=timezone.now())
+            PrivateMessage.objects.filter(
+                Q(target=self.request.user) & Q(author=target)
+            ).update(read=True, read_date=timezone.now())
             context["conversation"] = PrivateMessage.objects.filter(
                 (Q(target=self.request.user) & Q(author=target))
                 | (Q(target=target) & Q(author=self.request.user))
             ).order_by("created_date")
-            
+
             context["conversation_with"] = target.username
         else:
             """
@@ -196,6 +200,7 @@ class HomeView(View):
     """
     Home (front page) view.
     """
+
     def filter_roots_by_tag(self, root_nodes, tag_name):
         if tag_name:
             if re.search(r"^([a-zA-Z]+)$", tag_name):
@@ -212,7 +217,8 @@ class HomeView(View):
                 root_nodes.filter(created_date__gte=timezone.now() - timedelta(hours=6))
                 .annotate(
                     hotness=(
-                        (Count("upvotes") + Count("downvotes")) + (0.5 * Count("children"))
+                        (Count("upvotes") + Count("downvotes"))
+                        + (0.5 * Count("children"))
                     )
                 )
                 .order_by("-hotness")
@@ -226,8 +232,8 @@ class HomeView(View):
 
     def filter_roots_by_blacklist(self, request, root_nodes):
         return root_nodes.exclude(
-                Q(tags__blacklisters=request.user) & ~Q(user=request.user)
-            )
+            Q(tags__blacklisters=request.user) & ~Q(user=request.user)
+        )
 
     def rebuild_tree(self, request, root_nodes):
         # To make pagination possible we need to paginate root nodes only.

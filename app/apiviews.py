@@ -9,12 +9,22 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Entry, Notification, PrivateMessage, Tag, User
-from .permissions import (DeletedReadOnly, DisallowVoteChanges,
-                          IsOwnerOrReadOnly, IsTarget,
-                          PrivateMessageGetOnlyRelatedMessages,
-                          PrivateMessagePostAndGetOnly, TagGetOnly, NotificationGetOnly)
-from .serializers import (EntrySerializer, NotificationSerializer,
-                          PrivateMessageSerializer, TagSerializer)
+from .permissions import (
+    DeletedReadOnly,
+    DisallowVoteChanges,
+    IsOwnerOrReadOnly,
+    IsTarget,
+    NotificationGetOnly,
+    PrivateMessageGetOnlyRelatedMessages,
+    PrivateMessagePostAndGetOnly,
+    TagGetOnly,
+)
+from .serializers import (
+    EntrySerializer,
+    NotificationSerializer,
+    PrivateMessageSerializer,
+    TagSerializer,
+)
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -68,7 +78,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(user_notifications, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=True, methods=["post"])
     def read(self, request, pk=None):
         notification = self.get_object()
@@ -77,7 +87,6 @@ class NotificationViewSet(viewsets.ModelViewSet):
             notification.save()
             serializer = self.get_serializer(notification)
             return Response(serializer.data)
-        
 
     @action(detail=False, methods=["get"])
     def unread(self, request):
@@ -105,8 +114,10 @@ class PrivateMessageViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def unread(self, request):
-        unread_pms = PrivateMessage.objects.filter(target=self.request.user).filter(read=False)
-        author = request.GET.get('from', None)
+        unread_pms = PrivateMessage.objects.filter(target=self.request.user).filter(
+            read=False
+        )
+        author = request.GET.get("from", None)
         if author:
             try:
                 author = User.objects.get(username=author)
@@ -118,7 +129,9 @@ class PrivateMessageViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"])
     def read_all(self, request):
-        user_pms = PrivateMessage.objects.filter(target=self.request.user).filter(read=False)
+        user_pms = PrivateMessage.objects.filter(target=self.request.user).filter(
+            read=False
+        )
         n = user_pms.update(read=True, read_date=timezone.now())
         return Response({"status": f"succesfully read {n} messages"})
 
@@ -148,22 +161,28 @@ class PrivateMessageViewSet(viewsets.ModelViewSet):
         ::read - if false, will return messages to user that are not read
         ::from - if set to valid user will return messages from that user
         """
-        private_messages = PrivateMessage.objects.filter(Q(author=self.request.user) | Q(target=self.request.user))
-        q_read = self.request.query_params.get('read', None)
+        private_messages = PrivateMessage.objects.filter(
+            Q(author=self.request.user) | Q(target=self.request.user)
+        )
+        q_read = self.request.query_params.get("read", None)
         if q_read:
             q_read = q_read.lower()
             if q_read == "false":
-                private_messages = private_messages.filter(target=self.request.user).filter(read=False)
+                private_messages = private_messages.filter(
+                    target=self.request.user
+                ).filter(read=False)
             elif q_read == "true":
-                private_messages = private_messages.filter(target=self.request.user).filter(read=True)
-        q_from = self.request.query_params.get('from', None)
+                private_messages = private_messages.filter(
+                    target=self.request.user
+                ).filter(read=True)
+        q_from = self.request.query_params.get("from", None)
         if q_from:
             try:
                 author = User.objects.get(username=q_from.lower())
                 private_messages = private_messages.filter(author=author)
             except ObjectDoesNotExist:
                 pass
-        return private_messages.order_by('-created_date')
+        return private_messages.order_by("-created_date")
 
 
 class EntryViewSet(viewsets.ModelViewSet):
@@ -179,7 +198,7 @@ class EntryViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def upvote(self, request, pk=None):
         entry = self.get_object()
         if request.user in entry.downvotes.all():
@@ -190,8 +209,8 @@ class EntryViewSet(viewsets.ModelViewSet):
             entry.upvotes.add(request.user)
         serializer = self.get_serializer(entry)
         return Response(serializer.data)
-    
-    @action(detail=True, methods=['post'])
+
+    @action(detail=True, methods=["post"])
     def downvote(self, request, pk=None):
         entry = self.get_object()
         if request.user in entry.upvotes.all():
@@ -221,4 +240,3 @@ class EntryViewSet(viewsets.ModelViewSet):
         context = {"request": request}
         serializer = self.serializer_class(entry, many=False, context=context)
         return Response(serializer.data)
-

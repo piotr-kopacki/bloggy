@@ -1,10 +1,11 @@
 from rest_framework import permissions
 
+
 class TagGetOnly(permissions.BasePermission):
     message = "GET is allowed only"
 
     def has_permission(self, request, view):
-        if view.action in ['blacklist', 'observe']:
+        if view.action in ["blacklist", "observe"]:
             return True
         return request.method in permissions.SAFE_METHODS
 
@@ -13,7 +14,7 @@ class NotificationGetOnly(permissions.BasePermission):
     message = "GET is allowed only"
 
     def has_permission(self, request, view):
-        if view.action in ['read', 'read_all']:
+        if view.action in ["read", "read_all"]:
             return True
         return request.method in permissions.SAFE_METHODS
 
@@ -38,7 +39,10 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     message = "Not an owner."
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS or view.action in ['upvote', 'downvote']:
+        if request.method in permissions.SAFE_METHODS or view.action in [
+            "upvote",
+            "downvote",
+        ]:
             return True
         return request.user == obj.user
 

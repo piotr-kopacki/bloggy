@@ -1,7 +1,11 @@
 from rest_framework import routers
 
-from app.apiviews import (EntryViewSet, NotificationViewSet,
-                          PrivateMessageViewSet, TagViewSet)
+from app.apiviews import (
+    EntryViewSet,
+    NotificationViewSet,
+    PrivateMessageViewSet,
+    TagViewSet,
+)
 
 router = routers.DefaultRouter()
 router.register(r"entries", EntryViewSet)

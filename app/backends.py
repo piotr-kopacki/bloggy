@@ -5,6 +5,7 @@ class CaseInsensitiveModelBackend(ModelBackend):
     """
     Custom authentication backend to enable authenticating with case insensitive usernames
     """
+
     def authenticate(self, request, username=None, password=None, **kwargs):
         if username:
             username = username.lower()

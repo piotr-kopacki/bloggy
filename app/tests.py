@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Entry, Notification, Tag, User, PrivateMessage
+from .models import Entry, Notification, PrivateMessage, Tag, User
 
 MARKDOWN_SAMPLE = """# hello, This is Markdown Live Preview
 ----
@@ -89,7 +89,7 @@ class NotificationAPIViewTestCase(APITestCase):
     def test_disallow_read_false(self):
         u = User.objects.create(username="testuser")
         e = Entry.objects.create(pk=1, content="test", user=u, deleted=True)
-        n = Notification.objects.create(
+        Notification.objects.create(
             pk=1, type="user_replied", sender=u, object=e, target=u
         )
         self.client.force_authenticate(user=u)
@@ -110,9 +110,7 @@ class NotificationAPIViewTestCase(APITestCase):
         u = User.objects.create(username="testuser")
         u2 = User.objects.create(username="testuser2", email="email")
         e = Entry.objects.create(pk=1, content="test", user=u, deleted=True)
-        n = Notification.objects.create(
-            type="user_replied", sender=u, object=e, target=u2
-        )
+        Notification.objects.create(type="user_replied", sender=u, object=e, target=u2)
         self.client.force_authenticate(user=u)
         url = reverse("notifications-list")
         response = self.client.get(url)
@@ -122,7 +120,7 @@ class NotificationAPIViewTestCase(APITestCase):
 class EntryAPIViewTestCase(APITestCase):
     def test_allow_get_only_when_deleted(self):
         user = User.objects.create(username="testuser")
-        entry = Entry.objects.create(pk=1, content="test", user=user, deleted=True)
+        Entry.objects.create(pk=1, content="test", user=user, deleted=True)
         self.client.force_authenticate(user=user)
         url = reverse("entry-detail", kwargs={"pk": 1})
         data = {"content": ""}
@@ -145,7 +143,7 @@ class EntryAPIViewTestCase(APITestCase):
     def test_allow_post_when_owner_only(self):
         user = User.objects.create(username="testuser")
         owner = User.objects.create(username="Owner", email="test@test.test")
-        entry = Entry.objects.create(pk=1, content="test", user=owner)
+        Entry.objects.create(pk=1, content="test", user=owner)
         self.client.force_authenticate(user=user)
         url = reverse("entry-detail", kwargs={"pk": 1})
         response = self.client.get(url)
@@ -156,7 +154,7 @@ class EntryAPIViewTestCase(APITestCase):
 
     def test_allow_authenticated_users_only(self):
         user = User.objects.create(username="testuser")
-        entry = Entry.objects.create(pk=1, content="test", user=user)
+        Entry.objects.create(pk=1, content="test", user=user)
         url = reverse("entry-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -224,7 +222,7 @@ class EntryViewSetTestCase(TestCase):
     def test_soft_deletion(self):
         u = User.objects.create(username="testuser")
         e = Entry.objects.create(pk=1, user=u, content="test")
-        e2 = Entry.objects.create(pk=2, user=u, content="test2", parent=e)
+        Entry.objects.create(pk=2, user=u, content="test2", parent=e)
         e.delete()
         self.assertIsNotNone(Entry.objects.get(pk=1))
         self.assertIsNotNone(Entry.objects.get(pk=2))

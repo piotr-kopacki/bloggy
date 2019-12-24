@@ -51,16 +51,16 @@ body > * {
 
 .node.user-upvoted {
   color: white;
-  background-color: green; 
-  border: 1px solid green; 
+  background-color: green;
+  border: 1px solid green;
   padding: 1px;
   border-radius: 5px;
 }
 
 .node.user-downvoted {
   color: white;
-  background-color: red; 
-  border: 1px solid red; 
+  background-color: red;
+  border: 1px solid red;
   padding: 1px;
   border-radius: 5px;
 }
@@ -148,15 +148,15 @@ body > * {
     width: 100%;
     color: white;
     text-align: center;
-    height: 40px; 
+    height: 40px;
     line-height: 40px;
     background-color: #f5f5f5;
 }
 
 /* Custom Markdown Styling */
 .entry-content {
-  margin-left: 5px; 
-  word-wrap: break-word; 
+  margin-left: 5px;
+  word-wrap: break-word;
 }
 .entry-content h1{
   font-size: 18px;
@@ -257,7 +257,7 @@ body > * {
   height: 400px;
   border: 1px solid rgba(76, 60, 27, 0.347);
   padding: 5px;
-  float: left; 
+  float: left;
   width: 15%;
   margin-right: 2%;
 }

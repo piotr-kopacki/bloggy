@@ -31,16 +31,22 @@ class User(AbstractUser):
         Returns user points by a formula count_of_entries + upvotes_from_entries - downvotes_from_entries
         """
         user_entries = Entry.objects.filter(user=self.pk)
-        aggregations = user_entries.aggregate(models.Count('upvotes'), models.Count('downvotes'))
-        return user_entries.count() + aggregations['upvotes__count'] - aggregations['downvotes__count']
+        aggregations = user_entries.aggregate(
+            models.Count("upvotes"), models.Count("downvotes")
+        )
+        return (
+            user_entries.count()
+            + aggregations["upvotes__count"]
+            - aggregations["downvotes__count"]
+        )
 
     @cached_property
     def notifications_unread_count(self):
         return Notification.objects.filter(target=self).filter(read=False).count()
-    
+
     @cached_property
     def notifications(self):
-        return Notification.objects.filter(target=self).order_by('-id')[:5]
+        return Notification.objects.filter(target=self).order_by("-id")[:5]
 
     @cached_property
     def private_messages_unread_count(self):
@@ -67,7 +73,6 @@ class Tag(models.Model):
     blacklisters = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="blacklisters", blank=True
     )
-
 
     def __str__(self):
         return "#" + self.name
@@ -117,9 +122,12 @@ class PrivateMessage(models.Model):
     ::created_date - datetime when message was sent by author
     ::read_date    - datetime when message was read by target
     """
+
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pms_sent")
     text = models.CharField(max_length=500)
-    target = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pms_received")
+    target = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="pms_received"
+    )
     read = models.BooleanField(default=False)
     created_date = models.DateTimeField(auto_now_add=True)
     read_date = models.DateTimeField(null=True, blank=True)
@@ -142,6 +150,7 @@ class DeletedEntry(models.Model):
     ::created_on - datetime of creation
     ::deleted_on - datetime of deletion
     """
+
     old_id = models.IntegerField()
     user = models.IntegerField()
     parent = models.IntegerField(blank=True, null=True)
@@ -199,7 +208,7 @@ class Entry(MPTTModel):
         return f'"{self.content}"'
 
     def get_absolute_url(self):
-        return reverse('entry-detail-view', args=[str(self.id)])
+        return reverse("entry-detail-view", args=[str(self.id)])
 
     def format_content(self):
         # Convert 'h1' (#) tag into a hyperlink to a tag
@@ -249,7 +258,9 @@ class Entry(MPTTModel):
             self.upvotes.add(self.user)
         # Clear tags so if user deletes a tag from content it won't appear.
         self.tags.clear()
-        tags_to_add = [Tag.objects.get_or_create(name=tag_name)[0] for tag_name in self.get_tags]
+        tags_to_add = [
+            Tag.objects.get_or_create(name=tag_name)[0] for tag_name in self.get_tags
+        ]
         self.tags.add(*tags_to_add)
 
     def delete(self, *args, **kwargs):
@@ -308,7 +319,6 @@ class Entry(MPTTModel):
         """
         p = r"(\W|^)(#)([a-zA-Z]+\b)(?![a-zA-Z_#])"
         return list({f[2].lower() for f in re.findall(p, self.content)})
-
 
     def parent_formatted(self):
         """

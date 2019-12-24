@@ -140,7 +140,7 @@
                         }
                     }
                 });
-                $.ajax({    
+                $.ajax({
                     url: "{% url 'tags-blacklist' browsed_tag.name %}",
                     type: 'POST',
                     success: function (data) {
@@ -223,7 +223,7 @@
                                 addNotification(data.results[i]);
                             }
                         }
-                        
+
                     }
                     if (data.length == 0 || data.count == null) {
                         $(".fas.fa-bell").attr("class", "far fa-bell");
@@ -241,7 +241,7 @@
                             $("#no-notifications-text").hide()
                         }
                     }
-                    
+
                 }
             });
         }
@@ -293,7 +293,7 @@
                 <i class="far fa-envelope" id="private-messages-envelope">
                     <span class="badge badge-pill badge-primary" id="private-messages-unread-count" style="display: none;"></span>
                 {% endif %}
-                </i>  
+                </i>
             </a>
             <div class="dropdown show" style="margin-right: 15px;">
                 <a style="color: white;" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
@@ -363,10 +363,10 @@
 
         {% endblock %}
         {% block content-body %}
-        
+
         {% endblock %}
         {% block content-tail %}
-        
+
         {% endblock %}
     </div>
     {% block footer %}

@@ -18,7 +18,11 @@ def entry_notification(sender, instance, created, **kwargs):
         # First find usernames mentioned (by @ tag)
         p = re.compile(r"^(@)(\w+)$")
         usernames = set(
-            [p.match(c).group(2).lower() for c in instance.content.split() if p.match(c)]
+            [
+                p.match(c).group(2).lower()
+                for c in instance.content.split()
+                if p.match(c)
+            ]
         )
         # Remove the author of an entry from users to notify
         if instance.user.username in usernames:
@@ -40,7 +44,7 @@ def entry_notification(sender, instance, created, **kwargs):
                 continue
             try:
                 target = User.objects.get(username=name)
-            except:
+            except Exception:
                 continue
             Notification.objects.create(
                 type="user_mentioned",
@@ -81,12 +85,14 @@ def entry_tag_notification(instance, action, **kwargs):
                     f'<a href="{reversed_user}">{instance.user.username}</a> used tag <a href="{reversed_tag}">#{tag.name}</a>'
                     f' in <a href="{reversed_entry}">"{instance.content:.25}..."</a>'
                 )
-                to_create.append(Notification(
-                    type="tag_used",
-                    sender=instance.user,
-                    target=observer,
-                    object=instance,
-                    content=content,
-                ))
+                to_create.append(
+                    Notification(
+                        type="tag_used",
+                        sender=instance.user,
+                        target=observer,
+                        object=instance,
+                        content=content,
+                    )
+                )
                 already_notified.add(observer)
         Notification.objects.bulk_create(to_create)

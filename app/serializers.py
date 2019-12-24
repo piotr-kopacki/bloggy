@@ -42,10 +42,19 @@ class NotificationSerializer(serializers.HyperlinkedModelSerializer):
             "created_date",
             "content",
         )
-        fields = ("id", "sender", "type", "object", "content", "target", "created_date", "read")
+        fields = (
+            "id",
+            "sender",
+            "type",
+            "object",
+            "content",
+            "target",
+            "created_date",
+            "read",
+        )
 
     def validate_read(self, value):
-        if value != True:
+        if value is not True:
             raise serializers.ValidationError("Cannot unread notifications")
         return value
 

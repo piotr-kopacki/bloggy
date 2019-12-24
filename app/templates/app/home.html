@@ -97,7 +97,7 @@
         <ul class="children entry" style="padding-left: 25px">
             {{ children }}
         </ul>
-        {% endif %}         
+        {% endif %}
         </li>
         {% if node.is_root_node %}
         <hr>
@@ -143,7 +143,7 @@
             success: function (data) {
                 $(`.downvote[data-id='${data.id}']`).removeClass("user-downvoted")
                 if(data['user_upvoted']){
-                    e.target.classList.add("user-upvoted")       
+                    e.target.classList.add("user-upvoted")
                 } else {
                     e.target.classList.remove("user-upvoted")
                 }
