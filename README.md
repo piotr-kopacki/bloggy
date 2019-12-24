@@ -20,6 +20,16 @@ $ python3 manage.py migrate
 $ python3 manage.py runserver
 ```
 
+Using [Poetry](https://python-poetry.org/):
+
+```sh
+$ cd bloggy
+$ poetry install
+$ python3 manage.py makemigrations
+$ python3 manage.py migrate
+$ python3 manage.py runserver
+```
+
 ## Running the tests
 
 ```sh
@@ -29,6 +39,8 @@ $ python3 manage.py test
 ## Contribution
 
 Feel free to contribute to the project by making pull requests!
+
+Please run ```pre-commit run``` before creating a PR.
 
 ## Built With
 
