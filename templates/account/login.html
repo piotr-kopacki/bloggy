@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content-body %}
+<br>
+<form method="POST" action="{% url 'account_login' %}">
+    {% csrf_token %}
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+    <div class="form-group">
+        <label for="usernameInput">Username</label>
+        <input type="text" name="login" class="form-control {% if form.errors %}is-invalid{% endif %}" id="usernameInput"
+            aria-describedby="usernameHelp" placeholder="Username" required>
+        {% if form.errors %}
+        <div class="invalid-feedback">Your username and password didn't match. Please try again.</div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="passwordInput">Password</label>
+        <input type="password" name="password" class="form-control {% if form.errors %}is-invalid{% endif %}" id="passwordInput"
+            placeholder="Password" required>
+    </div>
+    <label for="id_remember">Remember Me:</label> <input type="checkbox" name="remember" id="id_remember">
+    <br>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<p>
+    <a href="{% url 'account_reset_password' %}">Lost password?</a>
+    <br>
+    <a href="{% url 'account_signup' %}">Create an account</a>
+</p>
+{% endblock %}

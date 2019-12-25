@@ -1,0 +1,16 @@
+{% extends "rest_framework/base.html" %}
+{% load static %}
+
+{% block meta %}
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="robots" content="NONE,NOARCHIVE" />
+<link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.ico' %}"/>
+{% endblock %}
+
+{% block branding %}
+<a class="brand mb-0 h1" href="{% url 'home' %}" style="margin-bottom: 0px">bloggy</a>
+{% endblock %}
+
+{% block bootstrap_theme %}
+<link rel="stylesheet" href="https://bootswatch.com/3/readable/bootstrap.min.css" type="text/css">
+{% endblock %}
