@@ -1,12 +1,8 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from entries.models import Tag, Entry
 from messeges.models import PrivateMessage
 from notifications.models import Notification
-
-
-User = get_user_model()
 
 
 class TagSerializer(serializers.ModelSerializer):
