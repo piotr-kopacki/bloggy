@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content-body %}
+<br>
+<form method="POST" action="{% url 'account_signup' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="usernameInput">Username</label>
+            <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" id="usernameInput" aria-describedby="usernameHelp"
+                placeholder="Username" required>
+            {% for error in form.username.errors %}
+            <div class="invalid-feedback">{{ error|escape }}</div>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label for="emailInput">Email</label>
+            <input type="email" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="emailInput" aria-describedby="emailHelp"
+                placeholder="E-mail" required>
+            {% for error in form.email.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label for="passwordInput">Password</label>
+            <input type="password" name="password1" class="form-control {% if form.password2.errors or form.password1.errors %}is-invalid{% endif %}" id="passwordInput" placeholder="Password" required>
+            {% for error in form.password1.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label for="passwordInput2">Password confirmation</label>
+            <input type="password" name="password2" class="form-control {% if form.password2.errors or form.password1.errors %}is-invalid{% endif %}" id="password2Input" placeholder="Password" required>
+            {% for error in form.password2.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content-body %}
+<br>
+<p class="text-muted text-center">Ranking</p>
+<hr>
+<div class="container" style="margin: 0 auto; text-align: center">
+    <ol>
+        {% for user in object_list %}
+        <li class="ranking-list">
+            <p>
+                {{ user.display_name }} - {{ user.points }}p.
+            </p>
+
+        </li>
+        {% endfor %}
+    </ol>
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li>
+            <span style="margin-right: 8px;"><a href="?page={{ page_obj.previous_page_number }}">Previous</a></span>
+        </li>
+        {% endif %}
+        <li class="">
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.</span>
+        </li>
+        {% if page_obj.has_next %}
+        <li>
+            <span style="margin-left: 8px;"><a href="?page={{ page_obj.next_page_number }}">Next</a></span>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
